@@ -1,0 +1,12 @@
+/.idea/
+.venv/
+.venv/*
+.DS_Store
+*.pyc
+__pycache__
+.env
+static
+.png
+certs
+venv/*
+.idea/

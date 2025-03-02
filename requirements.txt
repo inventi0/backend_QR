@@ -1,0 +1,15 @@
+python-dotenv
+SQLAlchemy
+fastapi
+asyncpg
+uvicorn
+pydantic
+python-jose
+nh3
+jinja2
+asyncpg
+greenlet
+aiobotocore
+fastapi_users
+fastapi_users_db_sqlalchemy
+bs4

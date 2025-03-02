@@ -1,0 +1,36 @@
+version: '3.9'
+
+services:
+  app:
+    build:
+      context: .
+    env_file:
+      - ".env"
+    ports:
+      - "443:443"
+    volumes:
+      - ./certs:/app/certs:ro
+    networks:
+      - app_net
+    depends_on:
+      - db
+
+  db:
+    image: postgres
+    env_file: ".env"
+    environment:
+      - POSTGRES_USER=${LOGIN_DB}
+      - POSTGRES_PASSWORD=${PASSWORD_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - app_net
+    command: ["postgres", "-c", "log_destination=stderr", "-c", "logging_collector=on", "-c", "log_directory=/var/log/postgresql"]
+
+networks:
+  app_net:
+
+volumes:
+  postgres_data:
