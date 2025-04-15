@@ -7,20 +7,22 @@ services:
     env_file:
       - ".env"
     ports:
-      - "443:443"
-    volumes:
-      - ./certs:/app/certs:ro
+      - "8000:8000"
     networks:
       - app_net
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   db:
     image: postgres
-    env_file: ".env"
+    restart: always
+    env_file:
+      - ".env"
     environment:
-      - POSTGRES_USER=${LOGIN_DB}
-      - POSTGRES_PASSWORD=${PASSWORD_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -28,6 +30,11 @@ services:
     networks:
       - app_net
     command: ["postgres", "-c", "log_destination=stderr", "-c", "logging_collector=on", "-c", "log_directory=/var/log/postgresql"]
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 networks:
   app_net:
