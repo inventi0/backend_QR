@@ -13,9 +13,11 @@ class User(Base):
     review_history = Column(Text, nullable=False)
     password = Column(String, nullable=False)
 
+    # Добавлены связи с другими таблицами
     orders = relationship("Order", back_populates="user")
     reviews = relationship("Review", back_populates="user")
     cart = relationship("Cart", back_populates="user", uselist=False)
+
 
 class Product(Base):
     __tablename__ = "products"
@@ -23,12 +25,22 @@ class Product(Base):
     size = Column(String(50), nullable=False)
     price = Column(Float, nullable=False)
     color = Column(String(50), nullable=False)
-    category = Column(String, nullable=False)
 
+    # Заменили строковое поле category на внешний ключ category_id,
+    # указывающий на поле category_id в таблице categories
+    category_id = Column(Integer, ForeignKey("categories.category_id"), nullable=False)
+
+    # Это объектная связь (relationship) — связывает Product с Category
     category = relationship("Category", back_populates="products")
+
+    # Добавлен столбец для QR-кода, который может быть пустым
+    qr_code = Column(String, unique=True, nullable=True)
+
+    # Остальные связи оставили без изменений
     order_details = relationship("OrderDetails", back_populates="product")
     reviews = relationship("Review", back_populates="product")
-    cart_items = relationship("CartItem", back_populates="product")
+    cart_items = relationship("CartItem", back_populates="product")  # Связь с CartItem добавлена
+
 
 class Category(Base):
     __tablename__ = "categories"
@@ -36,6 +48,7 @@ class Category(Base):
     category = Column(String(50), nullable=False)
     description = Column(String, nullable=False)
 
+    # Это обратная связь: список всех продуктов, относящихся к данной категории
     products = relationship("Product", back_populates="category")
 
 
@@ -45,11 +58,13 @@ class Review(Base):
     rating = Column(Integer, nullable=False)
     comment = Column(String, nullable=False)
     review_date = Column(DateTime, nullable=False)
-    product_id = Column(String(50), ForeignKey("products.product_id"), nullable=False)
-    user_id = Column(String(50), ForeignKey("users.user_id"), nullable=False)
+    product_id = Column(Integer, ForeignKey("products.product_id"), nullable=False)  # Исправлено на Integer
+    user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)  # Исправлено на Integer
 
+    # Связи с пользователем и продуктом
     product = relationship("Product", back_populates="reviews")
     user = relationship("User", back_populates="reviews")
+
 
 class Order(Base):
     __tablename__ = "orders"
@@ -60,10 +75,12 @@ class Order(Base):
     user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
     order_details = Column(String(50), nullable=False)
 
+    # Связи с другими таблицами
     user = relationship("User", back_populates="orders")
     details = relationship("OrderDetails", back_populates="order")
     payment = relationship("Payment", back_populates="order", uselist=False)
     shipping = relationship("Shipping", back_populates="order")
+
 
 class OrderDetails(Base):
     __tablename__ = "order_details"
@@ -74,8 +91,10 @@ class OrderDetails(Base):
     address = Column(String(50), nullable=False)
     postponed_shipping = Column(Boolean, default=False)
 
+    # Связи с продуктом и заказом
     product = relationship("Product", back_populates="order_details")
     order = relationship("Order", back_populates="details")
+
 
 class Cart(Base):
     __tablename__ = "cart"
@@ -84,18 +103,23 @@ class Cart(Base):
     cart_items = Column(String, nullable=False)
     user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
 
+    # Связи с пользователем и элементами корзины
     user = relationship("User", back_populates="cart")
-    items = relationship("CartItem", back_populates="cart")
+    items = relationship("CartItem", back_populates="cart")  # Связь с CartItem
 
-class CartItems(Base):
+
+# Добавлены изменения для CartItem: новая таблица CartItems
+class CartItem(Base):
     __tablename__ = "cart_items"
     cart_id = Column(Integer, ForeignKey("cart.cart_id"), primary_key=True, nullable=False)
     product_id = Column(Integer, ForeignKey("products.product_id"), nullable=False)
     quantity = Column(Integer, nullable=False)
     price = Column(Float, nullable=False)
 
+    # Связи с корзиной и продуктом
     product = relationship("Product", back_populates="cart_items")
     cart = relationship("Cart", back_populates="items")
+
 
 class Payment(Base):
     __tablename__ = "payments"
@@ -103,9 +127,11 @@ class Payment(Base):
     amount = Column(Float, nullable=False)
     payment_status = Column(Boolean, nullable=False)
     payment_date = Column(DateTime, nullable=False)
-    order_id = Column(String(50), ForeignKey("orders.order_id"), nullable=False)
+    order_id = Column(Integer, ForeignKey("orders.order_id"), nullable=False)  # Исправлено на Integer
 
+    # Связь с заказом
     order = relationship("Order", back_populates="payment")
+
 
 class Shipping(Base):
     __tablename__ = "shipping"
@@ -114,6 +140,7 @@ class Shipping(Base):
     shipping_method = Column(String(20), nullable=False)
     shipping_status = Column(String(20), nullable=False)
     shipping_date = Column(DateTime, nullable=False)
-    order_id = Column(Integer, ForeignKey("orders.order_id"), nullable=False)
+    order_id = Column(Integer, ForeignKey("orders.order_id"), nullable=False)  # Исправлено на Integer
 
+    # Связь с заказом
     order = relationship("Order", back_populates="shipping")
