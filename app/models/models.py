@@ -1,23 +1,29 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, Float, Boolean, DateTime, TIMESTAMP, Text, CHAR
+from fastapi import Depends
+from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTable, SQLAlchemyUserDatabase
+from sqlalchemy import Column, ForeignKey, Integer, String, Float, Boolean, DateTime, Text
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship
-from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
 
-Base = declarative_base()
+from app.database import get_db, Base
 
-class User(Base):
+class User(SQLAlchemyBaseUserTable[int], Base):
     __tablename__ = "users"
-    user_id = Column(Integer, primary_key=True, nullable=False)
-    email = Column(String(50), nullable=False)
-    order_history = Column(Text, nullable=False)
-    review_history = Column(Text, nullable=False)
-    password = Column(String, nullable=False)
+    id = Column(Integer, primary_key=True)
+    username = Column(String, nullable=False)
+    email = Column(String, unique=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    role_id = Column(Integer)
+    is_active = Column(Boolean, default=True, nullable=False)
+    is_superuser = Column(Boolean, default=False, nullable=False)
+    is_verified = Column(Boolean, default=False, nullable=False)
 
-    # Добавлены связи с другими таблицами
     orders = relationship("Order", back_populates="user")
     reviews = relationship("Review", back_populates="user")
     cart = relationship("Cart", back_populates="user", uselist=False)
 
+async def get_user_db(session: AsyncSession = Depends(get_db)):
+    yield SQLAlchemyUserDatabase(session, User)
 
 class Product(Base):
     __tablename__ = "products"
@@ -59,7 +65,7 @@ class Review(Base):
     comment = Column(String, nullable=False)
     review_date = Column(DateTime, nullable=False)
     product_id = Column(Integer, ForeignKey("products.product_id"), nullable=False)  # Исправлено на Integer
-    user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)  # Исправлено на Integer
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)  # Исправлено на Integer
 
     # Связи с пользователем и продуктом
     product = relationship("Product", back_populates="reviews")
@@ -72,7 +78,7 @@ class Order(Base):
     timestamp = Column(DateTime, default=datetime.now)
     order_price = Column(Float, nullable=False)
     order_status = Column(String, nullable=False)
-    user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     order_details = Column(String(50), nullable=False)
 
     # Связи с другими таблицами
@@ -101,7 +107,7 @@ class Cart(Base):
     cart_id = Column(Integer, primary_key=True, nullable=False)
     total_amount = Column(Float, nullable=False)
     cart_items = Column(String, nullable=False)
-    user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     # Связи с пользователем и элементами корзины
     user = relationship("User", back_populates="cart")
