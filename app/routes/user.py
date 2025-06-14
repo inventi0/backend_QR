@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .dependecies import current_user, fastapi_users
 from app.auth.auth import auth_backend
 from app.helpers.helpers import to_start, to_shutdown, create_admin
-from app.schemas.user_schemas import UserCreate, UserRead
+from app.schemas.user_schemas import UserCreate, UserRead, UserOut
 
 
 @asynccontextmanager
@@ -40,6 +40,6 @@ app.include_router(
 )
 
 app.include_router(
-    fastapi_users.get_users_router(UserRead, UserCreate),
+    fastapi_users.get_users_router(UserOut, UserCreate),
     tags=["me"],
 )
