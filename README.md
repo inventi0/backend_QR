@@ -42,7 +42,10 @@ docker-compose up --build
 ```
 http://localhost:8080/docs
 ```
-
+4. Длч того чтобы выключить:
+```bash
+docker-compose down
+```
 ---
 
 * убедись, что порты не заняты.
