@@ -31,7 +31,7 @@ SECRET_KEY=your_secret_key
 
 1. Убедись, что Docker и Docker Compose установлены и запущены.
 
-2. Запустите контейнеры:
+2. Запусти контейнер:
 
 ```bash
 docker-compose up --build
