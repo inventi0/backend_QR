@@ -10,12 +10,13 @@ from app.schemas.user_schemas import UserCreate, UserRead, UserOut
 
 @asynccontextmanager
 async def lifespan_func(app: FastAPI):
-   await to_start()
-   await create_admin()
-   print("База готова")
-   yield
-   await to_shutdown()
-   print("База очищена")
+    await to_start()
+    await create_admin()
+    print("База готова")
+    yield
+    await to_shutdown()
+    print("База очищена")
+
 
 app = FastAPI(lifespan=lifespan_func)
 

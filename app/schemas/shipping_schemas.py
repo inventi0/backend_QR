@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from datetime import datetime
 
+
 class ShippingBase(BaseModel):
     address: str
     shipping_method: str
@@ -8,8 +9,10 @@ class ShippingBase(BaseModel):
     shipping_date: datetime
     order_id: int
 
+
 class ShippingCreate(ShippingBase):
     pass
+
 
 class ShippingRead(ShippingBase):
     shipping_id: int

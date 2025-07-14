@@ -1,15 +1,15 @@
 from typing import Optional
 from fastapi import Depends, Request
 from fastapi_users import BaseUserManager, IntegerIDMixin, exceptions, models, schemas
-import os
 from dotenv import load_dotenv
+import os
 
-from app.models.models import User
-from app.models.models import get_user_db
+from app.models.models import User, get_user_db
 
 load_dotenv()
 
 forgot_password_key = os.getenv('private_key')
+
 
 class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
     reset_password_token_secret = forgot_password_key
@@ -37,7 +37,6 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
         user_dict["role_id"] = 1
 
         created_user = await self.user_db.create(user_dict)
-
         await self.on_after_register(created_user, request)
 
         return created_user
@@ -56,5 +55,5 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
         print(f"Verification requested for user {user.id}. Verification token: {token}")
 
 
-async def get_user_manager(user_db=Depends(get_user_db)):
+async def get_user_manager(user_db: Depends = Depends(get_user_db)):
     yield UserManager(user_db)

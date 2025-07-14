@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from datetime import datetime
 
+
 class ReviewBase(BaseModel):
     rating: int
     comment: str
@@ -8,8 +9,10 @@ class ReviewBase(BaseModel):
     product_id: int
     user_id: int
 
+
 class ReviewCreate(ReviewBase):
     pass
+
 
 class ReviewRead(ReviewBase):
     review_id: int

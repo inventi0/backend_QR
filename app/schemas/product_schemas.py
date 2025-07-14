@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import Optional
 from .category_schemas import CategoryRead
 
+
 class ProductBase(BaseModel):
     size: str
     price: float
@@ -9,8 +10,10 @@ class ProductBase(BaseModel):
     category_id: int
     qr_code: Optional[str] = None
 
+
 class ProductCreate(ProductBase):
     pass
+
 
 class ProductRead(ProductBase):
     product_id: int
