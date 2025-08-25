@@ -1,12 +1,10 @@
 from fastapi import Depends
 from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTable, SQLAlchemyUserDatabase
-from sqlalchemy import Column, ForeignKey, Integer, String, Float, Boolean, DateTime
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import relationship
 from datetime import datetime
-
+from sqlalchemy import Column, Integer, String, ForeignKey, Text, DateTime, Boolean, Float
+from sqlalchemy.orm import relationship, declarative_base
 from app.database import get_db, Base
-
 
 class User(SQLAlchemyBaseUserTable[int], Base):
     __tablename__ = "users"
@@ -26,223 +24,97 @@ class User(SQLAlchemyBaseUserTable[int], Base):
         passive_deletes=True,
         lazy="selectin",
     )
-    reviews = relationship(
-        "Review",
-        back_populates="user",
-        cascade="all, delete-orphan",
-        passive_deletes=True,
-        lazy="selectin",
-    )
-    cart = relationship(
-        "Cart",
-        back_populates="user",
-        uselist=False,
-        cascade="all, delete-orphan",
-        passive_deletes=True,
-        lazy="selectin",
-    )
 
-
+    reviews = relationship("Review", back_populates="user", cascade="all, delete-orphan")
+    canvases = relationship("Canvas", back_populates="user", cascade="all, delete-orphan")
+    faqs = relationship("FAQ", back_populates="user", cascade="all, delete-orphan")
 async def get_user_db(session: AsyncSession = Depends(get_db)):
     yield SQLAlchemyUserDatabase(session, User)
 
-
 class Product(Base):
-    __tablename__ = "products"
-    product_id = Column(Integer, primary_key=True, nullable=False)
-    size = Column(String(50), nullable=False)
-    price = Column(Float, nullable=False)
-    color = Column(String(50), nullable=False)
-    category_id = Column(
-        Integer,
-        ForeignKey("categories.category_id", ondelete="CASCADE"),
-        nullable=False,
-    )
-    qr_code = Column(String, unique=True, nullable=True)
+    __tablename__ = 'products'
 
-    category = relationship(
-        "Category", back_populates="products", passive_deletes=True, lazy="selectin"
-    )
-    order_details = relationship(
-        "OrderDetails",
-        back_populates="product",
-        cascade="all, delete-orphan",
-        passive_deletes=True,
-        lazy="selectin",
-    )
-    reviews = relationship(
-        "Review",
-        back_populates="product",
-        cascade="all, delete-orphan",
-        passive_deletes=True,
-        lazy="selectin",
-    )
-    cart_items = relationship(
-        "CartItem",
-        back_populates="product",
-        cascade="all, delete-orphan",
-        passive_deletes=True,
-        lazy="selectin",
-    )
+    id = Column(Integer, primary_key=True)
+    type = Column(String, nullable=False)
+    size = Column(String, nullable=False)
+    color = Column(String, nullable=False)
+    description = Column(Text)
 
-
-class Category(Base):
-    __tablename__ = "categories"
-    category_id = Column(Integer, primary_key=True, nullable=False)
-    category = Column(String(50), nullable=False)
-    description = Column(String, nullable=False)
-
-    products = relationship(
-        "Product",
-        back_populates="category",
-        cascade="all, delete-orphan",
-        passive_deletes=True,
-        lazy="selectin",
-    )
-
-
-class Review(Base):
-    __tablename__ = "reviews"
-    review_id = Column(Integer, primary_key=True, nullable=False)
-    rating = Column(Integer, nullable=False)
-    comment = Column(String, nullable=False)
-    review_date = Column(DateTime, nullable=False)
-    product_id = Column(
-        Integer, ForeignKey("products.product_id", ondelete="CASCADE"), nullable=False
-    )
-    user_id = Column(
-        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
-    )
-
-    product = relationship(
-        "Product", back_populates="reviews", passive_deletes=True, lazy="selectin"
-    )
-    user = relationship(
-        "User", back_populates="reviews", passive_deletes=True, lazy="selectin"
-    )
+    order_items = relationship('OrderItem', back_populates='product')
+    canvases = relationship('Canvas', back_populates='product')
 
 
 class Order(Base):
-    __tablename__ = "orders"
-    order_id = Column(Integer, primary_key=True, nullable=False)
-    timestamp = Column(DateTime, default=datetime.now)
-    order_price = Column(Float, nullable=False)
-    order_status = Column(String, nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    order_details = Column(String(50), nullable=False)
+    __tablename__ = 'orders'
 
-    user = relationship(
-        "User", back_populates="orders", passive_deletes=True, lazy="selectin"
-    )
-    details = relationship(
-        "OrderDetails",
-        back_populates="order",
-        cascade="all, delete-orphan",
-        passive_deletes=True,
-        lazy="selectin",
-    )
-    payment = relationship(
-        "Payment",
-        back_populates="order",
-        uselist=False,
-        cascade="all, delete-orphan",
-        passive_deletes=True,
-        lazy="selectin",
-    )
-    shipping = relationship(
-        "Shipping",
-        back_populates="order",
-        cascade="all, delete-orphan",
-        passive_deletes=True,
-        lazy="selectin",
-    )
+    id = Column(Integer, primary_key=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    status = Column(String, default="pending")
+
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+
+    user = relationship('User', back_populates='orders')
+    items = relationship('OrderItem', back_populates='order', cascade="all, delete-orphan")
 
 
-class OrderDetails(Base):
-    __tablename__ = "order_details"
-    product_id = Column(
-        Integer, ForeignKey("products.product_id", ondelete="CASCADE"), primary_key=True, nullable=False
-    )
-    quantity = Column(Integer, nullable=False)
-    price = Column(Float, nullable=False)
-    order_id = Column(
-        Integer, ForeignKey("orders.order_id", ondelete="CASCADE"), nullable=False
-    )
-    address = Column(String(50), nullable=False)
-    postponed_shipping = Column(Boolean, default=False)
+class OrderItem(Base):
+    __tablename__ = 'order_items'
 
-    product = relationship(
-        "Product", back_populates="order_details", passive_deletes=True, lazy="selectin"
-    )
-    order = relationship(
-        "Order", back_populates="details", passive_deletes=True, lazy="selectin"
-    )
+    id = Column(Integer, primary_key=True)
+    quantity = Column(Integer, default=1)
+
+    order_id = Column(Integer, ForeignKey('orders.id'), nullable=False)
+    product_id = Column(Integer, ForeignKey('products.id'), nullable=False)
+
+    order = relationship('Order', back_populates='items')
+    product = relationship('Product', back_populates='order_items')
 
 
-class Cart(Base):
-    __tablename__ = "cart"
-    cart_id = Column(Integer, primary_key=True, nullable=False)
-    total_amount = Column(Float, nullable=False)
-    cart_items = Column(String, nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+class Review(Base):
+    __tablename__ = 'reviews'
 
-    user = relationship(
-        "User", back_populates="cart", passive_deletes=True, lazy="selectin"
-    )
-    items = relationship(
-        "CartItem",
-        back_populates="cart",
-        cascade="all, delete-orphan",
-        passive_deletes=True,
-        lazy="selectin",
-    )
+    id = Column(Integer, primary_key=True)
+    stars = Column(Integer, nullable=False)
+    content = Column(Text, nullable=False)
+
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+
+    user = relationship('User', back_populates='reviews')
 
 
-class CartItem(Base):
-    __tablename__ = "cart_items"
-    cart_id = Column(
-        Integer, ForeignKey("cart.cart_id", ondelete="CASCADE"), primary_key=True, nullable=False
-    )
-    product_id = Column(
-        Integer, ForeignKey("products.product_id", ondelete="CASCADE"), nullable=False
-    )
-    quantity = Column(Integer, nullable=False)
-    price = Column(Float, nullable=False)
+class Canvas(Base):
+    __tablename__ = 'canvases'
 
-    product = relationship(
-        "Product", back_populates="cart_items", passive_deletes=True, lazy="selectin"
-    )
-    cart = relationship(
-        "Cart", back_populates="items", passive_deletes=True, lazy="selectin"
-    )
+    id = Column(Integer, primary_key=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    image_url = Column(String, nullable=False)  # ссылка на S3
+
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    product_id = Column(Integer, ForeignKey('products.id'), nullable=False)
+
+    user = relationship('User', back_populates='canvases')
+    product = relationship('Product', back_populates='canvases')
+    qrcode = relationship('QRCode', back_populates='canvas', uselist=False, cascade="all, delete-orphan")
 
 
-class Payment(Base):
-    __tablename__ = "payments"
-    payment_id = Column(Integer, primary_key=True, nullable=False)
-    amount = Column(Float, nullable=False)
-    payment_status = Column(Boolean, nullable=False)
-    payment_date = Column(DateTime, nullable=False)
-    order_id = Column(
-        Integer, ForeignKey("orders.order_id", ondelete="CASCADE"), nullable=False
-    )
+class QRCode(Base):
+    __tablename__ = 'qrcodes'
 
-    order = relationship(
-        "Order", back_populates="payment", passive_deletes=True, lazy="selectin"
-    )
+    id = Column(Integer, primary_key=True)
+    qr_data = Column(String, nullable=False)
+
+    canvas_id = Column(Integer, ForeignKey('canvases.id'), unique=True, nullable=False)
+
+    canvas = relationship('Canvas', back_populates='qrcode')
 
 
-class Shipping(Base):
-    __tablename__ = "shipping"
-    shipping_id = Column(Integer, primary_key=True, nullable=False)
-    address = Column(String(50), nullable=False)
-    shipping_method = Column(String(20), nullable=False)
-    shipping_status = Column(String(20), nullable=False)
-    shipping_date = Column(DateTime, nullable=False)
-    order_id = Column(
-        Integer, ForeignKey("orders.order_id", ondelete="CASCADE"), nullable=False
-    )
+class FAQ(Base):
+    __tablename__ = 'faqs'
 
-    order = relationship(
-        "Order", back_populates="shipping", passive_deletes=True, lazy="selectin"
-    )
+    id = Column(Integer, primary_key=True)
+    question = Column(Text, nullable=False)
+    answer = Column(Text)
+
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=True)
+
+    user = relationship('User', back_populates='faqs')
