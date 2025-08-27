@@ -6,7 +6,7 @@ from fastapi import UploadFile, HTTPException
 from passlib.context import CryptContext
 
 from app.database import Base, engine, async_session
-from app.models.models import User
+from app.models.models import User, Product  # добавили Product
 
 load_dotenv()
 
@@ -41,6 +41,26 @@ async def create_admin():
             session.add(admin)
             await session.commit()
 
+
+async def create_product():
+    async with async_session() as session:
+        result = await session.execute(
+            select(Product).where(
+                Product.type == "Футболка",
+                Product.size == "M",
+                Product.color == "Белый",
+            )
+        )
+        product = result.scalars().first()
+        if not product:
+            product = Product(
+                type="Футболка",
+                size="M",
+                color="Белый",
+                description="Базовая белая футболка размера M",
+            )
+            session.add(product)
+            await session.commit()
 
 async def to_shutdown():
     async with engine.begin() as conn:

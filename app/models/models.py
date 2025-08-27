@@ -28,6 +28,7 @@ class User(SQLAlchemyBaseUserTable[int], Base):
     reviews = relationship("Review", back_populates="user", cascade="all, delete-orphan")
     canvases = relationship("Canvas", back_populates="user", cascade="all, delete-orphan")
     faqs = relationship("FAQ", back_populates="user", cascade="all, delete-orphan")
+
 async def get_user_db(session: AsyncSession = Depends(get_db)):
     yield SQLAlchemyUserDatabase(session, User)
 
@@ -87,21 +88,20 @@ class Canvas(Base):
 
     id = Column(Integer, primary_key=True)
     created_at = Column(DateTime, default=datetime.utcnow)
-    image_url = Column(String, nullable=False) 
+    image_url = Column(String)
 
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    product_id = Column(Integer, ForeignKey('products.id'), nullable=False)
+    product_id = Column(Integer, ForeignKey('products.id'))
 
     user = relationship('User', back_populates='canvases')
     product = relationship('Product', back_populates='canvases')
     qrcode = relationship('QRCode', back_populates='canvas', uselist=False, cascade="all, delete-orphan")
 
-
 class QRCode(Base):
     __tablename__ = 'qrcodes'
 
     id = Column(Integer, primary_key=True)
-    qr_data = Column(String, nullable=False)
+    link = Column(String, nullable=False)
 
     canvas_id = Column(Integer, ForeignKey('canvases.id'), unique=True, nullable=False)
 
