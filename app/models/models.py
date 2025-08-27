@@ -3,7 +3,7 @@ from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTable, SQLAlchemyUserD
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, ForeignKey, Text, DateTime, Boolean, Float
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import relationship
 from app.database import get_db, Base
 
 class User(SQLAlchemyBaseUserTable[int], Base):

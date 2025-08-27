@@ -1,12 +1,11 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Path, Depends, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .dependecies import current_user, fastapi_users
+from .dependecies import fastapi_users
 from app.auth.auth import auth_backend
 from app.helpers.helpers import to_start, to_shutdown, create_admin
 from app.schemas.user_schemas import UserCreate, UserRead, UserOut
-
 
 @asynccontextmanager
 async def lifespan_func(app: FastAPI):
