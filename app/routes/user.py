@@ -6,7 +6,7 @@ from .dependecies import current_user, fastapi_users
 from app.auth.auth import auth_backend
 from app.helpers.helpers import to_start, to_shutdown, create_admin
 from app.schemas.user_schemas import UserCreate, UserRead, UserOut
-
+from app.admin import admin
 
 @asynccontextmanager
 async def lifespan_func(app: FastAPI):
@@ -18,7 +18,8 @@ async def lifespan_func(app: FastAPI):
     print("База очищена")
 
 app = FastAPI(lifespan=lifespan_func)
-
+# 👇 монтируем админку
+admin.mount_to(app)
 @app.get("/ping")
 async def ping():
     return {"status": "ok", "message": "Приложение поднялось!"}
