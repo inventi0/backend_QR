@@ -1,24 +1,27 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Path, Depends, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .dependecies import current_user, fastapi_users
+from .qr_router import qr_router
+from .dependecies import fastapi_users
 from app.auth.auth import auth_backend
-from app.helpers.helpers import to_start, to_shutdown, create_admin
+from app.helpers.helpers import to_start, to_shutdown, create_admin, create_product
 from app.schemas.user_schemas import UserCreate, UserRead, UserOut
+
 from app.admin import admin
 
 @asynccontextmanager
 async def lifespan_func(app: FastAPI):
     await to_start()
     await create_admin()
+    await create_product()
     print("База готова")
     yield
     await to_shutdown()
     print("База очищена")
 
 app = FastAPI(lifespan=lifespan_func)
-# 👇 монтируем админку
+
 admin.mount_to(app)
 @app.get("/ping")
 async def ping():
@@ -48,3 +51,5 @@ app.include_router(
     fastapi_users.get_users_router(UserOut, UserCreate),
     tags=["me"],
 )
+
+app.include_router(qr_router)

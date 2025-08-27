@@ -10,7 +10,6 @@ load_dotenv()
 
 forgot_password_key = os.getenv('private_key')
 
-
 class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
     reset_password_token_secret = forgot_password_key
     verification_token_secret = forgot_password_key
