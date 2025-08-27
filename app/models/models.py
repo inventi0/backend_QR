@@ -87,7 +87,7 @@ class Canvas(Base):
 
     id = Column(Integer, primary_key=True)
     created_at = Column(DateTime, default=datetime.utcnow)
-    image_url = Column(String, nullable=False)  # ссылка на S3
+    image_url = Column(String, nullable=False) 
 
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     product_id = Column(Integer, ForeignKey('products.id'), nullable=False)
