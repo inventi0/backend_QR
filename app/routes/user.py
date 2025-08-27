@@ -17,8 +17,11 @@ async def lifespan_func(app: FastAPI):
     await to_shutdown()
     print("База очищена")
 
-
 app = FastAPI(lifespan=lifespan_func)
+
+@app.get("/ping")
+async def ping():
+    return {"status": "ok", "message": "Приложение поднялось!"}
 
 app.add_middleware(
     CORSMiddleware,
