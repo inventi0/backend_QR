@@ -8,6 +8,8 @@ from app.auth.auth import auth_backend
 from app.helpers.helpers import to_start, to_shutdown, create_admin, create_product
 from app.schemas.user_schemas import UserCreate, UserRead, UserOut
 
+from app.admin import admin
+
 @asynccontextmanager
 async def lifespan_func(app: FastAPI):
     await to_start()
@@ -19,6 +21,11 @@ async def lifespan_func(app: FastAPI):
     print("База очищена")
 
 app = FastAPI(lifespan=lifespan_func)
+
+admin.mount_to(app)
+@app.get("/ping")
+async def ping():
+    return {"status": "ok", "message": "Приложение поднялось!"}
 
 app.add_middleware(
     CORSMiddleware,
