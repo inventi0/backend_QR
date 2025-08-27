@@ -20,10 +20,6 @@ async def lifespan_func(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan_func)
 
-@app.get("/ping")
-async def ping():
-    return {"status": "ok", "message": "Приложение поднялось!"}
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
