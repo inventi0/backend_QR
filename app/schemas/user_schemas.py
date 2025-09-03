@@ -18,6 +18,8 @@ class UserRead(BaseUser[int]):
 class UserOut(BaseUser[int]):
     id: int
     email: EmailStr
+    img_url: Optional[str] = None
+    username: str
 
     # orders: Optional[List[OrderRead]] = []
     # reviews: Optional[List[ReviewRead]] = []

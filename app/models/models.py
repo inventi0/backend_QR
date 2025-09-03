@@ -13,6 +13,7 @@ class User(SQLAlchemyBaseUserTable[int], Base):
     email = Column(String, unique=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     role_id = Column(Integer)
+    img_url = Column(String)
     is_active = Column(Boolean, default=True, nullable=False)
     is_superuser = Column(Boolean, default=False, nullable=False)
     is_verified = Column(Boolean, default=False, nullable=False)
@@ -25,9 +26,26 @@ class User(SQLAlchemyBaseUserTable[int], Base):
         lazy="selectin",
     )
 
-    reviews = relationship("Review", back_populates="user", cascade="all, delete-orphan")
-    canvases = relationship("Canvas", back_populates="user", cascade="all, delete-orphan")
-    faqs = relationship("FAQ", back_populates="user", cascade="all, delete-orphan")
+    reviews = relationship(
+        "Review",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+
+    canvases = relationship(
+        "Canvas",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+
+    faqs = relationship(
+        "FAQ",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
 
 async def get_user_db(session: AsyncSession = Depends(get_db)):
     yield SQLAlchemyUserDatabase(session, User)
@@ -80,7 +98,7 @@ class Review(Base):
 
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
 
-    user = relationship('User', back_populates='reviews')
+    user = relationship("User", back_populates="reviews", lazy="selectin")
 
 
 class Canvas(Base):

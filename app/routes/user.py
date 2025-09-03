@@ -7,6 +7,8 @@ from .dependecies import fastapi_users
 from app.auth.auth import auth_backend
 from app.helpers.helpers import to_start, to_shutdown, create_admin, create_product
 from app.schemas.user_schemas import UserCreate, UserRead, UserOut
+from .review_router import review_router
+
 
 @asynccontextmanager
 async def lifespan_func(app: FastAPI):
@@ -46,3 +48,4 @@ app.include_router(
 )
 
 app.include_router(qr_router)
+app.include_router(review_router)

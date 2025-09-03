@@ -2,11 +2,11 @@ import os
 
 from dotenv import load_dotenv
 from sqlalchemy import select
-from fastapi import UploadFile, HTTPException
+from fastapi import HTTPException
 from passlib.context import CryptContext
 
 from app.database import Base, engine, async_session
-from app.models.models import User, Product  # добавили Product
+from app.models.models import User, Product
 
 load_dotenv()
 
