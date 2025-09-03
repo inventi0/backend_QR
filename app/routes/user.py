@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from .faq_router import faq_router
 from .qr_router import qr_router
 from .dependecies import fastapi_users
 from app.auth.auth import auth_backend
@@ -56,3 +57,4 @@ app.include_router(
 
 app.include_router(qr_router)
 app.include_router(review_router)
+app.include_router(faq_router)

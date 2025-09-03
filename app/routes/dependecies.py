@@ -17,3 +17,6 @@ async def get_enabled_backends():
 
 
 current_user = fastapi_users.current_user(get_enabled_backends=get_enabled_backends)
+current_superuser = fastapi_users.current_user(
+    active=True, superuser=True, get_enabled_backends=get_enabled_backends
+)

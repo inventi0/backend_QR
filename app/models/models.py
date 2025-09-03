@@ -40,12 +40,12 @@ class User(SQLAlchemyBaseUserTable[int], Base):
         lazy="selectin",
     )
 
-    faqs = relationship(
-        "FAQ",
-        back_populates="user",
-        cascade="all, delete-orphan",
-        lazy="selectin",
-    )
+    # faqs = relationship(
+    #     "FAQ",
+    #     back_populates="user",
+    #     cascade="all, delete-orphan",
+    #     lazy="selectin",
+    # )
 
 async def get_user_db(session: AsyncSession = Depends(get_db)):
     yield SQLAlchemyUserDatabase(session, User)
@@ -130,9 +130,11 @@ class FAQ(Base):
     __tablename__ = 'faqs'
 
     id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    email = Column(String, nullable=False)
     question = Column(Text, nullable=False)
     answer = Column(Text)
 
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=True)
-
-    user = relationship('User', back_populates='faqs')
+    # user_id = Column(Integer, ForeignKey('users.id'), nullable=True)
+    #
+    # user = relationship('User', back_populates='faqs')
