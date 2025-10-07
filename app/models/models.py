@@ -41,6 +41,15 @@ class User(SQLAlchemyBaseUserTable[int], Base):
         lazy="selectin",
     )
 
+    qr = relationship(
+        "QRCode",
+        back_populates="user",
+        uselist=False,
+        lazy="selectin",
+        cascade="all, delete-orphan",
+    )
+
+
 async def get_user_db(session: AsyncSession = Depends(get_db)):
     yield SQLAlchemyUserDatabase(session, User)
 
@@ -55,7 +64,7 @@ class Product(Base):
     img_url = Column(String)
 
     qr_id = Column(Integer, ForeignKey("qrcodes.id"), nullable=True)
-    qr = relationship("QRCode", back_populates="products")
+    qr = relationship("QRCode", back_populates="products", lazy="selectin")
 
     order_items = relationship("OrderItem", back_populates="product")
 
@@ -67,13 +76,14 @@ class Order(Base):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     status = Column(String, default="pending", nullable=False)
 
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
-    user = relationship("User", back_populates="orders")
+    user = relationship("User", back_populates="orders", lazy="selectin")
     items = relationship(
         "OrderItem",
         back_populates="order",
         cascade="all, delete-orphan",
+        lazy="selectin",
     )
 
 
@@ -83,11 +93,11 @@ class OrderItem(Base):
     id = Column(Integer, primary_key=True)
     quantity = Column(Integer, default=1, nullable=False)
 
-    order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
-    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
+    order_id = Column(Integer, ForeignKey("orders.id", ondelete="CASCADE"), nullable=False)
+    product_id = Column(Integer, ForeignKey("products.id", ondelete="CASCADE"), nullable=False)
 
-    order = relationship("Order", back_populates="items")
-    product = relationship("Product", back_populates="order_items")
+    order = relationship("Order", back_populates="items", lazy="selectin")
+    product = relationship("Product", back_populates="order_items", lazy="selectin")
 
 
 class Review(Base):
@@ -97,7 +107,7 @@ class Review(Base):
     stars = Column(Integer, nullable=False)
     content = Column(Text, nullable=False)
 
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
     user = relationship("User", back_populates="reviews", lazy="selectin")
 
@@ -105,15 +115,21 @@ class QRCode(Base):
     __tablename__ = "qrcodes"
 
     id = Column(Integer, primary_key=True)
+
     code = Column(String, unique=True, nullable=False)
 
-    current_canvas_id = Column(Integer, ForeignKey("canvases.id"), nullable=True)
+    link = Column(String, nullable=True)
 
+    current_canvas_id = Column(Integer, ForeignKey("canvases.id"), nullable=True)
     current_canvas = relationship(
         "Canvas",
         foreign_keys=[current_canvas_id],
         post_update=True,
+        lazy="selectin",
     )
+
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False)
+    user = relationship("User", back_populates="qr", lazy="selectin")
 
     canvases = relationship(
         "Canvas",
@@ -123,7 +139,7 @@ class QRCode(Base):
         foreign_keys="Canvas.qr_id",
     )
 
-    products = relationship("Product", back_populates="qr")
+    products = relationship("Product", back_populates="qr", lazy="selectin")
 
 
 class Canvas(Base):
@@ -131,17 +147,17 @@ class Canvas(Base):
 
     id = Column(Integer, primary_key=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
     image_url = Column(String)
     public_url = Column(String, nullable=True)
 
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     product_id = Column(Integer, ForeignKey("products.id"), nullable=True)
 
-    qr_id = Column(Integer, ForeignKey("qrcodes.id"), nullable=True)
-    qr = relationship("QRCode", back_populates="canvases", foreign_keys=[qr_id])
+    qr_id = Column(Integer, ForeignKey("qrcodes.id", ondelete="CASCADE"), nullable=True)
+    qr = relationship("QRCode", back_populates="canvases", foreign_keys=[qr_id], lazy="selectin")
 
-    user = relationship("User", back_populates="canvases")
-
+    user = relationship("User", back_populates="canvases", lazy="selectin")
 
 class FAQ(Base):
     __tablename__ = "faqs"
