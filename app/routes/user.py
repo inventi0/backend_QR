@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from .auth_custom import profile_router, auth_custom_router
 from .faq_router import faq_router
 from .product_router import products_router
 from .qr_router import qr_router
@@ -48,15 +49,12 @@ app.include_router(
 )
 
 app.include_router(
-    fastapi_users.get_register_router(UserRead, UserCreate),
-    prefix="/auth",
-    tags=["auth"],
-)
-
-app.include_router(
     fastapi_users.get_users_router(UserOut, UserCreate),
     tags=["me"],
 )
+
+app.include_router(auth_custom_router)
+app.include_router(profile_router)
 
 app.include_router(qr_router)
 app.include_router(review_router)

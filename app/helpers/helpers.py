@@ -51,11 +51,13 @@ def _build_s3_client_if_possible() -> Optional[S3Client]:
         bucket_name=bucket_name,
     )
 
-
 async def create_admin():
     """
-    Идемпотентно создаёт суперпользователя и гарантирует ему Editor+QR (+PNG в S3, если S3 настроен).
+    Идемпотентно создаёт суперпользователя и гарантирует ему Editor+QR
+    (+PNG в S3, если S3 настроен).
     """
+    admin_email = os.getenv("ADMIN_EMAIL", "admin@example.com")
+    admin_username = os.getenv("ADMIN_USERNAME", "admin")
     admin_password = os.getenv("ADMIN_PASSWORD")
     if not admin_password:
         raise RuntimeError("ENV ADMIN_PASSWORD is required to create admin")
@@ -66,8 +68,8 @@ async def create_admin():
 
         if not admin:
             admin = User(
-                email="admin@example.com",
-                username="admin",
+                email=admin_email,
+                username=admin_username,
                 hashed_password=get_password_hash(admin_password),
                 is_superuser=True,
                 is_active=True,
@@ -76,6 +78,7 @@ async def create_admin():
             )
             session.add(admin)
             await session.commit()
+            await session.refresh(admin)
 
         s3_client = _build_s3_client_if_possible()
         await ensure_user_editor_and_qr(session, s3_client, admin)

@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional
 from pydantic import EmailStr
 from fastapi_users.schemas import BaseUser, BaseUserCreate
 
@@ -7,6 +7,7 @@ class UserRead(BaseUser[int]):
     id: int
     email: EmailStr
     username: str
+    img_url: Optional[str] = None
     is_active: bool = True
     is_superuser: bool = False
     is_verified: bool = False
@@ -18,22 +19,14 @@ class UserRead(BaseUser[int]):
 class UserOut(BaseUser[int]):
     id: int
     email: EmailStr
-    img_url: Optional[str] = None
     username: str
-
-    # orders: Optional[List[OrderRead]] = []
-    # reviews: Optional[List[ReviewRead]] = []
-    # cart: Optional[CartRead] = None
+    img_url: Optional[str] = None
 
     class Config:
         orm_mode = True
 
 
 class UserCreate(BaseUserCreate):
-    username: str
     email: EmailStr
-    password: Optional[str] = None
-    role_id: int
-    is_active: Optional[bool] = True
-    is_superuser: Optional[bool] = False
-    is_verified: Optional[bool] = False
+    username: str
+    password: str
