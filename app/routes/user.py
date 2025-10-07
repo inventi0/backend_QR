@@ -12,6 +12,8 @@ from .review_router import review_router
 
 
 from app.admin import admin
+from .templates_router import templates_router
+
 
 @asynccontextmanager
 async def lifespan_func(app: FastAPI):
@@ -58,3 +60,4 @@ app.include_router(
 app.include_router(qr_router)
 app.include_router(review_router)
 app.include_router(faq_router)
+app.include_router(templates_router)
