@@ -34,11 +34,21 @@ class User(SQLAlchemyBaseUserTable[int], Base):
         cascade="all, delete-orphan",
         lazy="selectin",
     )
-    canvases = relationship(
-        "Canvas",
-        back_populates="user",
+
+    templates = relationship(
+        "Template",
+        back_populates="owner",
         cascade="all, delete-orphan",
         lazy="selectin",
+        foreign_keys="Template.owner_user_id",
+    )
+
+    editor = relationship(
+        "Editor",
+        back_populates="user",
+        uselist=False,
+        lazy="selectin",
+        cascade="all, delete-orphan",
     )
 
     qr = relationship(
@@ -111,7 +121,50 @@ class Review(Base):
 
     user = relationship("User", back_populates="reviews", lazy="selectin")
 
+class Template(Base):
+    """
+    Шаблон = ссылка на файл, который открывает редактор.
+    Можно хранить глобальную библиотеку (owner_user_id = NULL)
+    и пользовательские шаблоны (owner_user_id = user.id).
+    """
+    __tablename__ = "templates"
+
+    id = Column(Integer, primary_key=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    name = Column(String, nullable=False)
+    file_url = Column(String, nullable=False)
+    thumb_url = Column(String, nullable=True)
+    description = Column(Text, nullable=True)
+
+    owner_user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    owner = relationship("User", back_populates="templates", lazy="selectin")
+
+class Editor(Base):
+    """
+    Редактор пользователя. Имеет стабильный public_id (slug/uuid),
+    и хранит активный шаблон (current_template_id).
+    """
+    __tablename__ = "editors"
+
+    id = Column(Integer, primary_key=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    public_id = Column(String, unique=True, nullable=False)
+
+    current_template_id = Column(Integer, ForeignKey("templates.id", ondelete="SET NULL"), nullable=True)
+    current_template = relationship("Template", foreign_keys=[current_template_id], lazy="selectin")
+
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False)
+    user = relationship("User", back_populates="editor", lazy="selectin")
+
+    qr = relationship("QRCode", back_populates="editor", uselist=False, lazy="selectin")
+
 class QRCode(Base):
+    """
+    Один QR на пользователя. Ведёт на его редактор.
+    Нет связи с шаблонами — только с Editor.
+    """
     __tablename__ = "qrcodes"
 
     id = Column(Integer, primary_key=True)
@@ -119,45 +172,13 @@ class QRCode(Base):
     code = Column(String, unique=True, nullable=False)
 
     link = Column(String, nullable=True)
-
-    current_canvas_id = Column(Integer, ForeignKey("canvases.id"), nullable=True)
-    current_canvas = relationship(
-        "Canvas",
-        foreign_keys=[current_canvas_id],
-        post_update=True,
-        lazy="selectin",
-    )
-
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False)
     user = relationship("User", back_populates="qr", lazy="selectin")
 
-    canvases = relationship(
-        "Canvas",
-        back_populates="qr",
-        cascade="all, delete-orphan",
-        lazy="selectin",
-        foreign_keys="Canvas.qr_id",
-    )
+    editor_id = Column(Integer, ForeignKey("editors.id", ondelete="CASCADE"), unique=True, nullable=False)
+    editor = relationship("Editor", back_populates="qr", lazy="selectin")
 
     products = relationship("Product", back_populates="qr", lazy="selectin")
-
-
-class Canvas(Base):
-    __tablename__ = "canvases"
-
-    id = Column(Integer, primary_key=True)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-
-    image_url = Column(String)
-    public_url = Column(String, nullable=True)
-
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    product_id = Column(Integer, ForeignKey("products.id"), nullable=True)
-
-    qr_id = Column(Integer, ForeignKey("qrcodes.id", ondelete="CASCADE"), nullable=True)
-    qr = relationship("QRCode", back_populates="canvases", foreign_keys=[qr_id], lazy="selectin")
-
-    user = relationship("User", back_populates="canvases", lazy="selectin")
 
 class FAQ(Base):
     __tablename__ = "faqs"

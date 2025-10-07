@@ -1,11 +1,22 @@
 from pydantic import BaseModel, HttpUrl
 
 class QRCodeOut(BaseModel):
-    canvas_id: int
     qr_id: int
-    qr_image_url: HttpUrl
+    user_id: int
     code: str
-    target_url: HttpUrl
+    qr_image_url: HttpUrl | None = None
+
+    editor_id: int
+    editor_public_id: str
+    editor_url: str
+
+    current_template_id: int | None = None
+    current_template_file_url: str | None = None
 
     class Config:
+        from_attributes = True
         orm_mode = True
+
+
+class QRSetTemplateIn(BaseModel):
+    template_id: int
