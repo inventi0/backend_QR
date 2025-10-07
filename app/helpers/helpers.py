@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from typing import Optional
 
 from dotenv import load_dotenv
@@ -79,27 +80,69 @@ async def create_admin():
         s3_client = _build_s3_client_if_possible()
         await ensure_user_editor_and_qr(session, s3_client, admin)
 
-
 async def create_product():
+    """
+    Идемпотентный сидер продукта.
+    ENV (не обязательно):
+      SEED_PRODUCT_TYPE="Футболка"
+      SEED_PRODUCT_SIZE="M"
+      SEED_PRODUCT_COLOR="Белый"
+      SEED_PRODUCT_DESC="Базовая белая футболка размера M"
+      SEED_PRODUCT_IMG_PATH="/abs/path/to/local/image.png"  # если хотим залить в S3
+      SEED_PRODUCT_IMG_URL="https://..."                    # либо готовый URL
+    """
+    p_type = os.getenv("SEED_PRODUCT_TYPE", "Футболка")
+    p_size = os.getenv("SEED_PRODUCT_SIZE", "M")
+    p_color = os.getenv("SEED_PRODUCT_COLOR", "Белый")
+    p_desc = os.getenv("SEED_PRODUCT_DESC", "Базовая белая футболка размера M")
+
+    img_path_env = os.getenv("SEED_PRODUCT_IMG_PATH")
+    img_url_env = os.getenv("SEED_PRODUCT_IMG_URL")
+
     async with async_session() as session:
         result = await session.execute(
             select(Product).where(
-                Product.type == "Футболка",
-                Product.size == "M",
-                Product.color == "Белый",
+                Product.type == p_type,
+                Product.size == p_size,
+                Product.color == p_color,
             )
         )
         product = result.scalars().first()
-        if not product:
-            product = Product(
-                type="Футболка",
-                size="M",
-                color="Белый",
-                description="Базовая белая футболка размера M",
-                img_url=os.getenv("SEED_PRODUCT_IMG_URL") or None,
-            )
-            session.add(product)
-            await session.commit()
+        if product:
+            return product
+
+        product = Product(
+            type=p_type,
+            size=p_size,
+            color=p_color,
+            description=p_desc,
+        )
+        session.add(product)
+        await session.flush()
+
+        final_img_url = None
+        s3_client = _build_s3_client_if_possible()
+
+        if img_path_env and s3_client:
+            p = Path(img_path_env)
+            if p.exists() and p.is_file():
+                object_key = f"products/{product.id}/{uuid.uuid4().hex[:8]}_{p.name}"
+                await s3_client.upload_file(str(p), object_key)
+                s3_public = os.getenv(
+                    "S3_PUBLIC_BASE",
+                    "https://3e06ba26-08cc-45a0-99f2-455006fbe542.selstorage.ru"
+                ).rstrip("/")
+                final_img_url = f"{s3_public}/{object_key}"
+
+        if not final_img_url and img_url_env:
+            final_img_url = img_url_env
+
+        product.img_url = final_img_url
+
+        await session.commit()
+        await session.refresh(product)
+        return product
+
 
 def is_admin(user: User) -> User:
     """Проверка прав администратора для handler'ов/сервисов."""
