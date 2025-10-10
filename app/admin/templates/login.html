@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+  <div class="card login-card">
+    <h1>Вход</h1>
+    <form id="loginForm">
+      <label>Email
+        <input type="email" name="username" required placeholder="email@example.com">
+      </label>
+      <label>Пароль
+        <input type="password" name="password" required>
+      </label>
+      <button class="btn primary" type="submit">Войти</button>
+      <div id="error" class="error" style="display:none;"></div>
+    </form>
+  </div>
+{% endblock %}
+{% block scripts %}
+<script>
+  const form = document.getElementById("loginForm");
+  const errorBox = document.getElementById("error");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    errorBox.style.display = "none";
+    const fd = new FormData(form);
+    try {
+      const resp = await fetch("/auth/jwt/login", { method: "POST", body: fd });
+      if (!resp.ok) throw new Error("Неверные учётные данные");
+      const data = await resp.json();
+      if (!data?.access_token) throw new Error("Нет access_token");
+      setToken(data.access_token);
+
+      const who = await authFetch("/users/me");
+      if (!who.ok) throw new Error("Не удалось получить профиль");
+      const user = await who.json();
+      if (!user?.is_superuser) {
+        clearToken();
+        throw new Error("Доступ только для суперпользователей");
+      }
+      location.href = "/admin/dashboard";
+    } catch (err) {
+      errorBox.textContent = err.message || "Ошибка входа";
+      errorBox.style.display = "block";
+    }
+  });
+</script>
+{% endblock %}

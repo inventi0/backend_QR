@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Заказы{% endblock %}
+{% block content %}
+  <div class="card">
+    <h2>Заказы</h2>
+    <div id="grid"></div>
+  </div>
+{% endblock %}
+{% block scripts %}
+<script>
+(async () => {
+  const token = getToken();
+  if (!token) return location.replace("/admin/login");
+
+  const me = await authFetch("/users/me");
+  if (!me.ok) { clearToken(); return location.replace("/admin/login"); }
+  const user = await me.json();
+  if (!user.is_superuser) { clearToken(); return location.replace("/admin/login"); }
+
+  const resp = await authFetch("/orders/?limit=50&offset=0"); // твой суперюзер-эндпоинт
+  if (!resp.ok) {
+    const t = await resp.text();
+    document.getElementById("grid").innerHTML = `<div class="error">Ошибка: ${t}</div>`;
+    return;
+  }
+  const data = await resp.json();
+  const grid = document.getElementById("grid");
+  if (!data.length) {
+    grid.innerHTML = "<div class='muted'>Нет заказов</div>";
+    return;
+  }
+  const table = document.createElement("table");
+  table.className = "tbl";
+  table.innerHTML = `
+    <thead><tr><th>ID</th><th>User</th><th>Status</th><th>Total</th><th>Actions</th></tr></thead>
+    <tbody></tbody>`;
+  const tb = table.querySelector("tbody");
+  data.forEach(o => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${o.id}</td>
+      <td>${o.user?.email || o.user_id || "-"}</td>
+      <td>${o.status || "-"}</td>
+      <td>${o.total_price ?? "-"}</td>
+      <td>
+        <button class="btn" data-id="${o.id}" data-act="del">Удалить</button>
+      </td>`;
+    tb.appendChild(tr);
+  });
+  grid.appendChild(table);
+
+  grid.addEventListener("click", async (e) => {
+    const btn = e.target.closest("button[data-act]");
+    if (!btn) return;
+    const id = btn.getAttribute("data-id");
+    if (btn.getAttribute("data-act") === "del") {
+      if (!confirm(`Удалить заказ ${id}?`)) return;
+      const r = await authFetch(`/orders/${id}`, { method: "DELETE" });
+      if (r.status === 204) location.reload();
+      else alert(await r.text());
+    }
+  });
+})();
+</script>
+{% endblock %}

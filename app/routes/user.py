@@ -10,12 +10,11 @@ from .qr_router import qr_router
 from .dependecies import fastapi_users
 from app.auth.auth import auth_backend
 from app.helpers.helpers import to_start, to_shutdown, create_admin, create_product
-from app.schemas.user_schemas import UserCreate, UserRead, UserOut
+from app.schemas.user_schemas import UserCreate, UserRead, UserOut, UserUpdate
 from .review_router import review_router
 
-
-from app.admin import admin
 from .templates_router import templates_router
+from ..admin import admin_star
 from ..logging_config import app_logger
 
 
@@ -73,8 +72,6 @@ async def ping():
     app_logger.info("Ping endpoint вызван")
     return {"status": "ok", "message": "Приложение поднялось!"}
 
-admin.mount_to(app)
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -90,8 +87,9 @@ app.include_router(
 )
 
 app.include_router(
-    fastapi_users.get_users_router(UserOut, UserCreate),
-    tags=["me"],
+    fastapi_users.get_users_router(UserRead, UserUpdate),
+    prefix="/users",
+    tags=["users"],
 )
 
 app.include_router(auth_custom_router)
@@ -103,3 +101,5 @@ app.include_router(faq_router)
 app.include_router(templates_router)
 app.include_router(products_router)
 app.include_router(orders_router)
+
+app.mount("/admin", admin_star)
