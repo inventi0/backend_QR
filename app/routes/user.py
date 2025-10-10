@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from .auth_custom import profile_router, auth_custom_router
@@ -16,6 +16,7 @@ from .review_router import review_router
 
 from app.admin import admin
 from .templates_router import templates_router
+from ..logging_config import app_logger
 
 
 @asynccontextmanager
@@ -30,10 +31,49 @@ async def lifespan_func(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan_func)
 
-admin.mount_to(app)
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    try:
+        body = await request.body()
+        try:
+            body_text = body.decode("utf-8")
+        except Exception:
+            body_text = "<binary data>"
+    except Exception:
+        body_text = "<unreadable>"
+
+    app_logger.info(f"REQUEST {request.method} {request.url} | body={body_text}")
+
+    try:
+        response = await call_next(request)
+    except Exception as e:
+        app_logger.exception(f"ERROR handling {request.method} {request.url}: {e}")
+        raise
+
+    try:
+        if hasattr(response, "body") and response.body is not None:
+            try:
+                resp_text = response.body.decode("utf-8")
+            except Exception:
+                resp_text = "<binary data>"
+        else:
+            resp_text = "<streaming or empty>"
+
+        app_logger.info(
+            f"RESPONSE {request.method} {request.url} | "
+            f"status={response.status_code} | body={resp_text}"
+        )
+    except Exception:
+        app_logger.exception("error logging response")
+
+    return response
+
 @app.get("/ping")
 async def ping():
+    app_logger.info("Ping endpoint вызван")
     return {"status": "ok", "message": "Приложение поднялось!"}
+
+admin.mount_to(app)
 
 app.add_middleware(
     CORSMiddleware,
