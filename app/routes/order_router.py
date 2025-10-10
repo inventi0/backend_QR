@@ -18,6 +18,9 @@ from app.helpers.order_helpers import (
     admin_delete_order, admin_update_order_status,
 )
 
+from app.error.handler import handle_error
+from app.logging_config import app_logger
+
 orders_router = APIRouter(prefix="/orders", tags=["orders"])
 
 
@@ -27,9 +30,13 @@ async def orders_create(
     user: User = Depends(current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    items = [(it.product_id, it.quantity) for it in payload.items]
-    order = await create_order(db, user, items)
-    return order
+    try:
+        items = [(it.product_id, it.quantity) for it in payload.items]
+        order = await create_order(db, user, items)
+        return order
+    except Exception as e:
+        raise handle_error(e, app_logger, "orders_create")
+
 
 @orders_router.get("/me", response_model=List[OrderOut])
 async def orders_list_mine(
@@ -38,8 +45,11 @@ async def orders_list_mine(
     user: User = Depends(current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    rows = await list_orders_for_user(db, user, limit=limit, offset=offset)
-    return rows
+    try:
+        rows = await list_orders_for_user(db, user, limit=limit, offset=offset)
+        return rows
+    except Exception as e:
+        raise handle_error(e, app_logger, "orders_list_mine")
 
 
 @orders_router.get("/{order_id}", response_model=OrderOut)
@@ -48,8 +58,11 @@ async def orders_get_one(
     user: User = Depends(current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    order = await get_order_secure(db, user, order_id)
-    return order
+    try:
+        order = await get_order_secure(db, user, order_id)
+        return order
+    except Exception as e:
+        raise handle_error(e, app_logger, "orders_get_one")
 
 
 @orders_router.get("/", response_model=List[OrderOut])
@@ -59,8 +72,12 @@ async def orders_list_all(
     user: User = Depends(current_superuser),
     db: AsyncSession = Depends(get_db),
 ):
-    rows = await list_all_orders(db, limit=limit, offset=offset)
-    return rows
+    try:
+        rows = await list_all_orders(db, limit=limit, offset=offset)
+        return rows
+    except Exception as e:
+        raise handle_error(e, app_logger, "orders_list_all")
+
 
 @orders_router.post("/{order_id}/items", response_model=OrderOut)
 async def orders_add_item(
@@ -69,10 +86,13 @@ async def orders_add_item(
     user: User = Depends(current_superuser),
     db: AsyncSession = Depends(get_db),
 ):
-    order = await admin_add_item_to_order(
-        db, user, order_id, product_id=payload.product_id, quantity=payload.quantity
-    )
-    return order
+    try:
+        order = await admin_add_item_to_order(
+            db, user, order_id, product_id=payload.product_id, quantity=payload.quantity
+        )
+        return order
+    except Exception as e:
+        raise handle_error(e, app_logger, "orders_add_item")
 
 
 @orders_router.delete("/{order_id}/items/{order_item_id}", response_model=OrderOut)
@@ -82,8 +102,12 @@ async def orders_remove_item(
     user: User = Depends(current_superuser),
     db: AsyncSession = Depends(get_db),
 ):
-    order = await admin_remove_item_from_order(db, user, order_id, order_item_id)
-    return order
+    try:
+        order = await admin_remove_item_from_order(db, user, order_id, order_item_id)
+        return order
+    except Exception as e:
+        raise handle_error(e, app_logger, "orders_remove_item")
+
 
 @orders_router.delete("/{order_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def orders_delete(
@@ -91,8 +115,12 @@ async def orders_delete(
     user: User = Depends(current_superuser),
     db: AsyncSession = Depends(get_db),
 ):
-    await admin_delete_order(db, user, order_id)
-    return
+    try:
+        await admin_delete_order(db, user, order_id)
+        return
+    except Exception as e:
+        raise handle_error(e, app_logger, "orders_delete")
+
 
 @orders_router.patch("/{order_id}/meta", response_model=OrderOut)
 async def orders_update_meta(
@@ -104,7 +132,10 @@ async def orders_update_meta(
     """
     Суперюзер: изменить информацию о заказе (сейчас — статус).
     """
-    order = await admin_update_order_status(
-        db, user, order_id, status=payload.status
-    )
-    return order
+    try:
+        order = await admin_update_order_status(
+            db, user, order_id, status=payload.status
+        )
+        return order
+    except Exception as e:
+        raise handle_error(e, app_logger, "orders_update_meta")

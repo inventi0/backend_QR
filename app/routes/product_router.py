@@ -18,6 +18,9 @@ from app.helpers.product_helpers import (
 )
 from app.s3.s3 import S3Client
 
+from app.error.handler import handle_error
+from app.logging_config import app_logger
+
 products_router = APIRouter(prefix="/products", tags=["products"])
 
 s3_client = S3Client(
@@ -26,6 +29,7 @@ s3_client = S3Client(
     endpoint_url=os.getenv("S3_ENDPOINT_URL"),
     bucket_name=os.getenv("S3_BUCKET_NAME"),
 )
+
 
 @products_router.get("/", response_model=List[ProductOut])
 async def products_list(
@@ -37,15 +41,19 @@ async def products_list(
     user: User = Depends(current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    rows = await list_products(
-        db,
-        type_filter=type,
-        size_filter=size,
-        color_filter=color,
-        limit=limit,
-        offset=offset,
-    )
-    return rows
+    try:
+        rows = await list_products(
+            db,
+            type_filter=type,
+            size_filter=size,
+            color_filter=color,
+            limit=limit,
+            offset=offset,
+        )
+        return rows
+    except Exception as e:
+        raise handle_error(e, app_logger, "products_list")
+
 
 @products_router.get("/{product_id}", response_model=ProductOut)
 async def product_get(
@@ -53,8 +61,12 @@ async def product_get(
     user: User = Depends(current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    product = await get_product_by_id(db, product_id)
-    return product
+    try:
+        product = await get_product_by_id(db, product_id)
+        return product
+    except Exception as e:
+        raise handle_error(e, app_logger, "product_get")
+
 
 @products_router.post("", response_model=ProductOut, status_code=status.HTTP_201_CREATED)
 async def product_create(
@@ -66,17 +78,21 @@ async def product_create(
     user: User = Depends(current_superuser),
     db: AsyncSession = Depends(get_db),
 ):
-    product = await create_product(
-        db=db,
-        s3=s3_client,
-        requester=user,
-        p_type=p_type,
-        size=size,
-        color=color,
-        description=description,
-        image_file=image,
-    )
-    return product
+    try:
+        product = await create_product(
+            db=db,
+            s3=s3_client,
+            requester=user,
+            p_type=p_type,
+            size=size,
+            color=color,
+            description=description,
+            image_file=image,
+        )
+        return product
+    except Exception as e:
+        raise handle_error(e, app_logger, "product_create")
+
 
 @products_router.patch("/{product_id}", response_model=ProductOut)
 async def product_update_meta(
@@ -85,16 +101,20 @@ async def product_update_meta(
     user: User = Depends(current_superuser),
     db: AsyncSession = Depends(get_db),
 ):
-    product = await update_product_meta(
-        db=db,
-        requester=user,
-        product_id=product_id,
-        p_type=payload.type,
-        size=payload.size,
-        color=payload.color,
-        description=payload.description,
-    )
-    return product
+    try:
+        product = await update_product_meta(
+            db=db,
+            requester=user,
+            product_id=product_id,
+            p_type=payload.type,
+            size=payload.size,
+            color=payload.color,
+            description=payload.description,
+        )
+        return product
+    except Exception as e:
+        raise handle_error(e, app_logger, "product_update_meta")
+
 
 @products_router.patch("/{product_id}/image", response_model=ProductOut)
 async def product_update_image(
@@ -103,14 +123,18 @@ async def product_update_image(
     user: User = Depends(current_superuser),
     db: AsyncSession = Depends(get_db),
 ):
-    product = await replace_product_image(
-        db=db,
-        s3=s3_client,
-        requester=user,
-        product_id=product_id,
-        new_image_file=image,
-    )
-    return product
+    try:
+        product = await replace_product_image(
+            db=db,
+            s3=s3_client,
+            requester=user,
+            product_id=product_id,
+            new_image_file=image,
+        )
+        return product
+    except Exception as e:
+        raise handle_error(e, app_logger, "product_update_image")
+
 
 @products_router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def product_delete(
@@ -118,5 +142,8 @@ async def product_delete(
     user: User = Depends(current_superuser),
     db: AsyncSession = Depends(get_db),
 ):
-    await delete_product(db=db, requester=user, product_id=product_id)
-    return
+    try:
+        await delete_product(db=db, requester=user, product_id=product_id)
+        return
+    except Exception as e:
+        raise handle_error(e, app_logger, "product_delete")

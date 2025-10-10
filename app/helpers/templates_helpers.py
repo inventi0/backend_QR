@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Optional, Type, Sequence
 
 from fastapi import HTTPException, UploadFile
-from sqlalchemy import func, select, or_
+from sqlalchemy import func, select, or_, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.models import Template, User
@@ -149,23 +149,26 @@ async def replace_template_file(
 
 async def delete_template(
     db: AsyncSession,
-    s3: Optional[S3Client],
+    s3: S3Client | None,
     requester: User,
     template_id: int,
 ) -> None:
-    """
-    Удаляет темплейт (из БД). Доступ: владелец или суперюзер.
-    При желании можно удалить и файл из S3 — добавьте в S3Client метод delete_file(object_name)
-    и храните object_name отдельно. Сейчас удаляется только запись.
-    """
-    tpl = await db.get(Template, template_id)
+    # проверка прав/владельца на стороне БД (без загрузки объекта в identity map)
+    tpl = await db.scalar(select(Template).where(Template.id == template_id))
     if not tpl:
-        raise HTTPException(status_code=404, detail="Template not found")
+        raise HTTPException(status_code=404, detail={"error":"not_found","msg":"Template not found"})
 
     if (tpl.owner_user_id is not None and tpl.owner_user_id != requester.id) and (not requester.is_superuser):
-        raise HTTPException(status_code=403, detail="Forbidden")
+        raise HTTPException(status_code=403, detail={"error":"forbidden","msg":"Not allowed to delete this template"})
 
-    await db.delete(tpl)
+    # при необходимости удаление из S3 (опционально)
+    # if s3 and tpl.file_url: await s3.delete_object_by_url(tpl.file_url)
+    # if s3 and getattr(tpl, "thumb_url", None): await s3.delete_object_by_url(tpl.thumb_url)
+
+    res = await db.execute(delete(Template).where(Template.id == template_id))
+    if res.rowcount == 0:
+        # если к моменту удаления кто-то уже удалил — отдадим 404
+        raise HTTPException(status_code=404, detail={"error":"not_found","msg":"Template not found"})
     await db.commit()
 
 async def count_templates_for_user(

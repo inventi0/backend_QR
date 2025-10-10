@@ -1,7 +1,7 @@
 import os
 from typing import Optional, List
 
-from fastapi import APIRouter, Depends, File, Form, UploadFile
+from fastapi import APIRouter, Depends, File, Form, UploadFile, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -16,6 +16,9 @@ from app.helpers.templates_helpers import (
     count_templates_for_user, list_templates_for_user,
 )
 from app.s3.s3 import S3Client
+from app.error.handler import handle_error
+
+from app.logging_config import app_logger
 
 templates_router = APIRouter(prefix="/templates", tags=["templates"])
 
@@ -26,6 +29,7 @@ s3_client = S3Client(
     bucket_name=os.getenv("S3_BUCKET_NAME"),
 )
 
+
 @templates_router.post("", response_model=TemplateOut)
 async def create_template(
     name: Optional[str] = Form(default=None),
@@ -35,19 +39,20 @@ async def create_template(
     user: User = Depends(current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """
-    Создать новый темплейт: загружаем файл (и опц. превью) в S3 и сохраняем Template.
-    """
-    tpl = await create_template_for_user(
-        db=db,
-        s3=s3_client,
-        user=user,
-        file=file,
-        name=name,
-        description=description,
-        thumb_file=thumb_file,
-    )
-    return tpl
+    try:
+        tpl = await create_template_for_user(
+            db=db,
+            s3=s3_client,
+            user=user,
+            file=file,
+            name=name,
+            description=description,
+            thumb_file=thumb_file,
+        )
+        return tpl
+    except Exception as e:
+        raise handle_error(e, app_logger, "create_template")
+
 
 @templates_router.get("/count/{user_id}", response_model=TemplateCountOut)
 async def templates_count(
@@ -55,12 +60,12 @@ async def templates_count(
     user: User = Depends(current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """
-    Количество темплейтов конкретного юзера по айди.
-    Доступ: владелец или суперюзер.
-    """
-    cnt = await count_templates_for_user(db, user, user_id)
-    return TemplateCountOut(user_id=user_id, count=cnt)
+    try:
+        cnt = await count_templates_for_user(db, user, user_id)
+        return TemplateCountOut(user_id=user_id, count=cnt)
+    except Exception as e:
+        raise handle_error(e, app_logger, "templates_count")
+
 
 @templates_router.patch("/{template_id}", response_model=TemplateOut)
 async def update_template(
@@ -69,18 +74,19 @@ async def update_template(
     user: User = Depends(current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """
-    Обновить метаданные темплейта (name/description/thumb_url).
-    """
-    tpl = await update_template_meta(
-        db=db,
-        requester=user,
-        template_id=template_id,
-        name=payload.name,
-        description=payload.description,
-        thumb_url=payload.thumb_url,
-    )
-    return tpl
+    try:
+        tpl = await update_template_meta(
+            db=db,
+            requester=user,
+            template_id=template_id,
+            name=payload.name,
+            description=payload.description,
+            thumb_url=payload.thumb_url,
+        )
+        return tpl
+    except Exception as e:
+        raise handle_error(e, app_logger, "update_template")
+
 
 @templates_router.patch("/{template_id}/file", response_model=TemplateOut)
 async def update_template_file(
@@ -90,18 +96,19 @@ async def update_template_file(
     user: User = Depends(current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """
-    Заменить файл (и опционально превью) у темплейта. Перезаливает в S3, обновляет ссылки.
-    """
-    tpl = await replace_template_file(
-        db=db,
-        s3=s3_client,
-        requester=user,
-        template_id=template_id,
-        new_file=file,
-        new_thumb_file=thumb_file,
-    )
-    return tpl
+    try:
+        tpl = await replace_template_file(
+            db=db,
+            s3=s3_client,
+            requester=user,
+            template_id=template_id,
+            new_file=file,
+            new_thumb_file=thumb_file,
+        )
+        return tpl
+    except Exception as e:
+        raise handle_error(e, app_logger, "update_template_file")
+
 
 @templates_router.delete("/{template_id}", status_code=204)
 async def remove_template(
@@ -109,11 +116,12 @@ async def remove_template(
     user: User = Depends(current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """
-    Удалить конкретный темплейт (из БД). Доступ: владелец или суперюзер.
-    """
-    await delete_template(db=db, s3=s3_client, requester=user, template_id=template_id)
-    return
+    try:
+        await delete_template(db=db, s3=s3_client, requester=user, template_id=template_id)
+        return
+    except Exception as e:
+        raise handle_error(e, app_logger, "remove_template")
+
 
 @templates_router.get("/by-user/{user_id}", response_model=List[TemplateOut])
 async def list_user_templates(
@@ -124,18 +132,15 @@ async def list_user_templates(
     user: User = Depends(current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """
-    Листинг шаблонов конкретного пользователя.
-    - include_global=True: вернёт и глобальные шаблоны (owner_user_id IS NULL)
-    - limit/offset: пагинация
-    Доступ: сам пользователь или суперюзер.
-    """
-    templates = await list_templates_for_user(
-        db=db,
-        requester=user,
-        target_user_id=user_id,
-        include_global=include_global,
-        limit=limit,
-        offset=offset,
-    )
-    return templates
+    try:
+        templates = await list_templates_for_user(
+            db=db,
+            requester=user,
+            target_user_id=user_id,
+            include_global=include_global,
+            limit=limit,
+            offset=offset,
+        )
+        return templates
+    except Exception as e:
+        raise handle_error(e, app_logger, "list_user_templates")

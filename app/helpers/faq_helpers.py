@@ -5,12 +5,13 @@ from sqlalchemy import select
 from app.models.models import FAQ
 
 
-async def create_faq_helper(db: AsyncSession, name: str, question: str) -> FAQ:
-    faq = FAQ(name=name, question=question)
+async def create_faq_helper(db: AsyncSession, name: str, email: str, question: str) -> FAQ:
+    faq = FAQ(name=name, email=email, question=question)
     db.add(faq)
     await db.commit()
     await db.refresh(faq)
     return faq
+
 
 
 async def get_all_faqs_helper(db: AsyncSession) -> Sequence[FAQ]:

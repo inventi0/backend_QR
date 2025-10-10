@@ -11,8 +11,11 @@ from app.helpers.codegen import (
     get_qr_for_user,
     set_editor_current_template,
 )
-
 from app.s3.s3 import S3Client
+
+from app.error.handler import handle_error
+from app.logging_config import app_logger
+
 s3_client = S3Client(
     access_key=os.getenv("S3_ACCESS_KEY"),
     secret_key=os.getenv("S3_SECRET_KEY"),
@@ -21,6 +24,7 @@ s3_client = S3Client(
 )
 
 qr_router = APIRouter(prefix="/qr", tags=["qr"])
+
 
 def _as_qr_out(qr: QRCode, editor: Editor, editor_url: str) -> QRCodeOut:
     return QRCodeOut(
@@ -42,11 +46,13 @@ async def get_qr_by_user(
     user: User = Depends(current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    if (user.id != user_id):
-        raise HTTPException(status_code=403, detail="Forbidden")
-
-    qr, editor, editor_url = await get_qr_for_user(db, user_id)
-    return _as_qr_out(qr, editor, editor_url)
+    try:
+        if user.id != user_id:
+            raise HTTPException(status_code=403, detail={"error": "forbidden", "msg": "Forbidden"})
+        qr, editor, editor_url = await get_qr_for_user(db, user_id)
+        return _as_qr_out(qr, editor, editor_url)
+    except Exception as e:
+        raise handle_error(e, app_logger, "get_qr_by_user")
 
 
 @qr_router.get("/", response_model=list[QRCodeOut], name="list-qr")
@@ -54,16 +60,19 @@ async def list_all_qrs(
     user: User = Depends(current_superuser),
     db: AsyncSession = Depends(get_db),
 ):
-    qrs = (await db.execute(select(QRCode))).scalars().all()
-    result: list[QRCodeOut] = []
-    for qr in qrs:
-        editor = await db.get(Editor, qr.editor_id)
-        if not editor:
-            continue
-        base = os.getenv("PUBLIC_FRONTEND_BASE_URL", "").rstrip("/")
-        editor_url = f"{base}/editor/{editor.public_id}" if base else f"/editor/{editor.public_id}"
-        result.append(_as_qr_out(qr, editor, editor_url))
-    return result
+    try:
+        qrs = (await db.execute(select(QRCode))).scalars().all()
+        result: list[QRCodeOut] = []
+        for qr in qrs:
+            editor = await db.get(Editor, qr.editor_id)
+            if not editor:
+                continue
+            base = os.getenv("PUBLIC_FRONTEND_BASE_URL", "").rstrip("/")
+            editor_url = f"{base}/editor/{editor.public_id}" if base else f"/editor/{editor.public_id}"
+            result.append(_as_qr_out(qr, editor, editor_url))
+        return result
+    except Exception as e:
+        raise handle_error(e, app_logger, "list_all_qrs")
 
 
 @qr_router.patch("/set-template", response_model=QRCodeOut)
@@ -72,10 +81,13 @@ async def update_qr_set_new_template(
     user: User = Depends(current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    qr, editor, tpl, editor_url = await set_editor_current_template(
-        db=db,
-        user=user,
-        template_id=payload.template_id,
-        s3=s3_client,
-    )
-    return _as_qr_out(qr, editor, editor_url)
+    try:
+        qr, editor, tpl, editor_url = await set_editor_current_template(
+            db=db,
+            user=user,
+            template_id=payload.template_id,
+            s3=s3_client,
+        )
+        return _as_qr_out(qr, editor, editor_url)
+    except Exception as e:
+        raise handle_error(e, app_logger, "update_qr_set_new_template")
