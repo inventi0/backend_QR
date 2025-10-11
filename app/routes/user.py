@@ -17,18 +17,54 @@ from .templates_router import templates_router
 from ..admin import admin_star
 from ..logging_config import app_logger
 
+import asyncio
+from contextlib import suppress
+from ..tgbot.settings import BotSettings
+from ..tgbot.factory import build_bot_and_dispatcher
+from ..tgbot.webhook import make_webhook_router
+
+settings = BotSettings()                      # <= pydantic-модель с полями в нижнем регистре
+bot, dp = build_bot_and_dispatcher(settings)  # <= единый бот/диспетчер
 
 @asynccontextmanager
 async def lifespan_func(app: FastAPI):
+    # === STARTUP ===
     await to_start()
     await create_admin()
     await create_product()
-    print("База готова")
+    app_logger.info("DB init done. Starting Telegram bot...")
+
+    if settings.mode == "webhook":
+
+        await bot.set_webhook(
+            url=f"{settings.webhook_base_url}{settings.webhook_path}",
+            secret_token=settings.webhook_secret_token or None,
+        )
+        me = await bot.get_me()
+        app_logger.info(f"Telegram webhook set for @{me.username} (id={me.id})")
+    else:
+
+        app.state._bot_task = asyncio.create_task(
+            dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
+        )
+        me = await bot.get_me()
+        app_logger.info(f"Telegram polling started for @{me.username} (id={me.id})")
+
+    app_logger.info("База готова")
     yield
+
+
+    if settings.mode == "polling":
+        app.state._bot_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await app.state._bot_task
+    await bot.session.close()
+
     await to_shutdown()
-    print("База очищена")
+    app_logger.info("База очищена")
 
 app = FastAPI(lifespan=lifespan_func)
+app.include_router(make_webhook_router(dp, bot, settings.webhook_secret_token))
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
@@ -101,5 +137,5 @@ app.include_router(faq_router)
 app.include_router(templates_router)
 app.include_router(products_router)
 app.include_router(orders_router)
-
 app.mount("/admin", admin_star)
+

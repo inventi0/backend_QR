@@ -3,9 +3,9 @@ from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTable, SQLAlchemyUserD
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
 from sqlalchemy import (
-    Column, Integer, String, ForeignKey, Text, DateTime, Boolean
+    Column, Integer, String, ForeignKey, Text, DateTime, Boolean, func
 )
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, Mapped, mapped_column
 from app.database import get_db, Base
 
 class User(SQLAlchemyBaseUserTable[int], Base):
@@ -188,3 +188,19 @@ class FAQ(Base):
     email = Column(String, nullable=False)
     question = Column(Text, nullable=False)
     answer = Column(Text)
+
+class Invoice(Base):
+    __tablename__ = "invoices"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    order_id: Mapped[str] = mapped_column(String(64), index=True)
+    amount: Mapped[str] = mapped_column(String(32))
+    currency: Mapped[str] = mapped_column(String(8))
+    name: Mapped[str] = mapped_column(String(128), nullable=True)
+    iban: Mapped[str] = mapped_column(String(128), nullable=True)
+    purpose: Mapped[str] = mapped_column(Text, nullable=True)
+    status: Mapped[str] = mapped_column(String(16), default="pending", index=True)
+    customer_chat_id: Mapped[int] = mapped_column(Integer, index=True)
+    provider: Mapped[str] = mapped_column(String(32), nullable=True)
+    payment_id: Mapped[str] = mapped_column(String(128), nullable=True)
+    created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())

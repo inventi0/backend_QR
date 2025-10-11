@@ -1,0 +1,9 @@
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+exclude = ["migrations", "__pycache__"]
+
+[tool.ruff.lint]
+select = ["F", "E", "W", "I"]  # F - Pyflakes, I - import order
+ignore = ["E501"]               # например, не ругаемся на длину строки
+fix = true
