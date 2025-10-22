@@ -28,6 +28,8 @@ services:
       context: .
     env_file:
       - ".env"
+    environment:
+      - PYTHONPATH=/app
     ports:
       - "80:8000"
     networks:
