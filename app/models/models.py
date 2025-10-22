@@ -72,6 +72,7 @@ class Product(Base):
     color = Column(String, nullable=False)
     description = Column(Text)
     img_url = Column(String)
+    price = Column(Integer)
 
     qr_id = Column(Integer, ForeignKey("qrcodes.id"), nullable=True)
     qr = relationship("QRCode", back_populates="products", lazy="selectin")
@@ -85,6 +86,7 @@ class Order(Base):
     id = Column(Integer, primary_key=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     status = Column(String, default="pending", nullable=False)
+    total_amount = Column(Integer)
 
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
@@ -102,6 +104,7 @@ class OrderItem(Base):
 
     id = Column(Integer, primary_key=True)
     quantity = Column(Integer, default=1, nullable=False)
+    amount = Column(Integer)
 
     order_id = Column(Integer, ForeignKey("orders.id", ondelete="CASCADE"), nullable=False)
     product_id = Column(Integer, ForeignKey("products.id", ondelete="CASCADE"), nullable=False)

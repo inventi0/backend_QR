@@ -34,7 +34,6 @@ async def _save_upload_to_tmp(upload: UploadFile) -> Path:
 def _s3_public_base() -> str:
     return os.getenv("S3_PUBLIC_BASE", "https://3e06ba26-08cc-45a0-99f2-455006fbe542.selstorage.ru").rstrip("/")
 
-
 async def list_products(
     db: AsyncSession,
     *,
@@ -56,7 +55,7 @@ async def list_products(
     rows = (await db.execute(q)).scalars().all()
     return rows
 
-async def get_product_by_id(db: AsyncSession, product_id: int) -> Type[Product]:
+async def get_product_by_id(db: AsyncSession, product_id: int) -> Product:
     product = await db.get(Product, product_id)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
@@ -72,13 +71,18 @@ async def create_product(
     color: str,
     description: Optional[str],
     image_file: UploadFile,
+    price: int,  # <-- новое поле
 ) -> Product:
     if not requester.is_superuser:
         raise HTTPException(status_code=403, detail="Forbidden")
 
+    if price is None or price < 0:
+        raise HTTPException(status_code=400, detail="Invalid price")
+
     if not image_file or not image_file.filename:
         raise HTTPException(status_code=400, detail="Image file is required")
 
+    # назначим QR владельца (как раньше)
     qr = await db.scalar(select(QRCode).where(QRCode.user_id == requester.id))
     if not qr:
         _, qr, _ = await ensure_user_editor_and_qr(db, s3, requester)
@@ -89,6 +93,7 @@ async def create_product(
         color=color,
         description=description,
         qr_id=qr.id,
+        price=price,
     )
     db.add(product)
     await db.flush()
@@ -112,7 +117,8 @@ async def update_product_meta(
     size: Optional[str] = None,
     color: Optional[str] = None,
     description: Optional[str] = None,
-) -> Type[Product]:
+    price: Optional[int] = None,  # <-- можно обновлять цену
+) -> Product:
     if not requester.is_superuser:
         raise HTTPException(status_code=403, detail="Forbidden")
 
@@ -126,6 +132,10 @@ async def update_product_meta(
         product.color = color
     if description is not None:
         product.description = description
+    if price is not None:
+        if price < 0:
+            raise HTTPException(status_code=400, detail="Invalid price")
+        product.price = price  # существующие заказы не трогаем
 
     await db.commit()
     await db.refresh(product)
@@ -138,7 +148,7 @@ async def replace_product_image(
     product_id: int,
     *,
     new_image_file: UploadFile,
-) -> Type[Product]:
+) -> Product:
     if not requester.is_superuser:
         raise HTTPException(status_code=403, detail="Forbidden")
 

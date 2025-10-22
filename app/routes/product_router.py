@@ -1,7 +1,7 @@
 import os
-from typing import List, Optional
+from typing import List, Optional, Union
 
-from fastapi import APIRouter, Depends, Query, UploadFile, File, Form, HTTPException, status
+from fastapi import APIRouter, Depends, Query, UploadFile, File, Form, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -74,6 +74,7 @@ async def product_create(
     size: str = Form(..., description="Размер, например 'M'"),
     color: str = Form(..., description="Цвет, например 'Белый'"),
     description: Optional[str] = Form(default=None),
+    price: int = Form(..., ge=0, description="Цена в минимальных денежных единицах"),  # <--- НОВОЕ
     image: UploadFile = File(...),
     user: User = Depends(current_superuser),
     db: AsyncSession = Depends(get_db),
@@ -88,6 +89,7 @@ async def product_create(
             color=color,
             description=description,
             image_file=image,
+            price=price,  # <--- передаем цену в хелпер
         )
         return product
     except Exception as e:
@@ -95,9 +97,9 @@ async def product_create(
 
 
 @products_router.patch("/{product_id}", response_model=ProductOut)
-async def product_update_meta(
+async def product_update_meta_route(
     product_id: int,
-    payload: ProductUpdateIn,
+    payload: ProductUpdateIn,  # поддерживает опциональный price
     user: User = Depends(current_superuser),
     db: AsyncSession = Depends(get_db),
 ):
@@ -110,6 +112,7 @@ async def product_update_meta(
             size=payload.size,
             color=payload.color,
             description=payload.description,
+            price=payload.price,  # <--- НОВОЕ
         )
         return product
     except Exception as e:

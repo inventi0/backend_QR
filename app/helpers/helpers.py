@@ -1,4 +1,5 @@
 import os
+import uuid
 from pathlib import Path
 from typing import Optional
 
@@ -91,6 +92,7 @@ async def create_product():
       SEED_PRODUCT_SIZE="M"
       SEED_PRODUCT_COLOR="Белый"
       SEED_PRODUCT_DESC="Базовая белая футболка размера M"
+      SEED_PRODUCT_PRICE="1500"   # новая переменная
       SEED_PRODUCT_IMG_PATH="/abs/path/to/local/image.png"  # если хотим залить в S3
       SEED_PRODUCT_IMG_URL="https://..."                    # либо готовый URL
     """
@@ -98,6 +100,7 @@ async def create_product():
     p_size = os.getenv("SEED_PRODUCT_SIZE", "M")
     p_color = os.getenv("SEED_PRODUCT_COLOR", "Белый")
     p_desc = os.getenv("SEED_PRODUCT_DESC", "Базовая белая футболка размера M")
+    p_price = int(os.getenv("SEED_PRODUCT_PRICE", "1000"))  # <--- добавлено
 
     img_path_env = os.getenv("SEED_PRODUCT_IMG_PATH")
     img_url_env = os.getenv("SEED_PRODUCT_IMG_URL")
@@ -112,13 +115,20 @@ async def create_product():
         )
         product = result.scalars().first()
         if product:
+            # если уже есть — просто обновляем цену (идемпотентно)
+            if product.price != p_price:
+                product.price = p_price
+                await session.commit()
+                await session.refresh(product)
             return product
 
+        # создаём новый продукт
         product = Product(
             type=p_type,
             size=p_size,
             color=p_color,
             description=p_desc,
+            price=p_price,  # <--- новое поле
         )
         session.add(product)
         await session.flush()
@@ -133,7 +143,7 @@ async def create_product():
                 await s3_client.upload_file(str(p), object_key)
                 s3_public = os.getenv(
                     "S3_PUBLIC_BASE",
-                    "https://3e06ba26-08cc-45a0-99f2-455006fbe542.selstorage.ru"
+                    "https://3e06ba26-08cc-45a0-99f2-455006fbe542.selstorage.ru",
                 ).rstrip("/")
                 final_img_url = f"{s3_public}/{object_key}"
 
@@ -141,7 +151,6 @@ async def create_product():
             final_img_url = img_url_env
 
         product.img_url = final_img_url
-
         await session.commit()
         await session.refresh(product)
         return product

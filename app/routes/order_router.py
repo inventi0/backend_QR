@@ -1,12 +1,16 @@
-from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from typing import List
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.models.models import User
 from app.routes.dependecies import current_user, current_superuser
 from app.schemas.order_schemas import (
-    OrderCreateIn, OrderOut, OrderItemAddIn, OrderUpdateIn
+    OrderCreateIn,
+    OrderOut,
+    OrderItemAddIn,
+    OrderItemUpdateIn,
+    OrderUpdateIn,
 )
 from app.helpers.order_helpers import (
     create_order,
@@ -15,7 +19,9 @@ from app.helpers.order_helpers import (
     list_all_orders,
     admin_add_item_to_order,
     admin_remove_item_from_order,
-    admin_delete_order, admin_update_order_status,
+    admin_delete_order,
+    admin_update_order_status,
+    admin_update_order_item_quantity,
 )
 
 from app.error.handler import handle_error
@@ -95,6 +101,23 @@ async def orders_add_item(
         raise handle_error(e, app_logger, "orders_add_item")
 
 
+@orders_router.patch("/{order_id}/items/{order_item_id}", response_model=OrderOut)
+async def orders_update_item_quantity(
+    order_id: int,
+    order_item_id: int,
+    payload: OrderItemUpdateIn,  # { quantity: int >=1 }
+    user: User = Depends(current_superuser),
+    db: AsyncSession = Depends(get_db),
+):
+    try:
+        order = await admin_update_order_item_quantity(
+            db, user, order_id, order_item_id, quantity=payload.quantity
+        )
+        return order
+    except Exception as e:
+        raise handle_error(e, app_logger, "orders_update_item_quantity")
+
+
 @orders_router.delete("/{order_id}/items/{order_item_id}", response_model=OrderOut)
 async def orders_remove_item(
     order_id: int,
@@ -129,9 +152,7 @@ async def orders_update_meta(
     user: User = Depends(current_superuser),
     db: AsyncSession = Depends(get_db),
 ):
-    """
-    Суперюзер: изменить информацию о заказе (сейчас — статус).
-    """
+    """Суперюзер: изменить метаданные заказа (сейчас — статус)."""
     try:
         order = await admin_update_order_status(
             db, user, order_id, status=payload.status
