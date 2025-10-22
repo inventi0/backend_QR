@@ -5,21 +5,28 @@
   <div class="card-head">
     <h2>Заказы</h2>
     <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap">
-      <button id="reload" class="btn">Обновить</button>
-      <button id="toggleCreate" class="btn primary">Создать заказ</button>
+      <button id="reload" class="btn" type="button">Обновить</button>
+      <button id="toggleCreate" class="btn primary" type="button">Создать заказ</button>
     </div>
   </div>
 
   <!-- ФИЛЬТРЫ -->
   <div class="panel" style="margin-bottom:12px">
-    <div style="display:grid;grid-template-columns:1fr 280px 160px;gap:10px;align-items:end">
+    <div style="display:grid;grid-template-columns:1fr 280px 200px 140px;gap:10px;align-items:end">
       <div>
         <label>Поиск по email</label>
         <input type="text" id="fEmail" placeholder="user@example.com">
       </div>
       <div>
-        <label>Статусы (через запятую)</label>
-        <input type="text" id="fStatuses" placeholder="paid, shipped, canceled">
+        <label>Статусы (multi)</label>
+        <select id="fStatuses" multiple size="4" style="height:96px">
+          <option value="pending">pending</option>
+          <option value="processing">processing</option>
+          <option value="paid">paid</option>
+          <option value="shipped">shipped</option>
+          <option value="done">done</option>
+          <option value="canceled">canceled</option>
+        </select>
       </div>
       <div>
         <label>Сортировка</label>
@@ -27,23 +34,35 @@
           <option value="none">Без сортировки</option>
           <option value="total_asc">Сумма ↑</option>
           <option value="total_desc">Сумма ↓</option>
+          <option value="created_desc">Новые → старые</option>
+          <option value="created_asc">Старые → новые</option>
         </select>
+      </div>
+      <div>
+        <button class="btn danger" id="resetFilters" type="button">Сбросить фильтры</button>
       </div>
     </div>
   </div>
 
   <!-- СОЗДАНИЕ -->
   <div id="createBox" class="panel" style="display:none; margin-bottom:12px">
-    <h3 style="margin:0 0 10px">Новый заказ</h3>
-    <div class="muted" style="margin-bottom:8px">
-      Будет создан от имени текущего пользователя (суперюзера).
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <h3 style="margin:0">Новый заказ</h3>
+      <button id="closeCreate" class="btn danger" type="button">Закрыть</button>
     </div>
+
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px">
+      <button id="pickForCreate" class="btn" type="button">Выбрать товары</button>
+      <div class="muted">Формируется корзина ниже</div>
+    </div>
+
+    <div id="createCart" class="panel" style="margin-bottom:10px">
+      <div class="muted">Корзина пуста</div>
+    </div>
+
     <form id="createForm">
       <div style="display:grid;grid-template-columns:1fr 200px;gap:10px;align-items:end">
-        <div>
-          <label>Позиции (пары <code>product_id:qty</code>, через запятую)</label>
-          <input type="text" name="pairs" placeholder="101:2, 305:1, 402:5" />
-        </div>
+        <div class="muted">Заказ создастся от имени текущего пользователя (суперюзера).</div>
         <button class="btn primary" type="submit">Создать</button>
       </div>
       <div id="createError" class="error" style="display:none;margin-top:10px"></div>
@@ -52,260 +71,331 @@
 
   <!-- СПИСОК -->
   <div id="grid" class="panel" style="overflow:auto">Загрузка…</div>
+  <div id="gridError" class="error" style="display:none; margin-top:8px"></div>
+
+  <!-- ПАГИНАЦИЯ -->
+  <div style="display:flex; gap:8px; align-items:center; margin-top:10px">
+    <button class="btn" id="prevPage" type="button">← Назад</button>
+    <button class="btn" id="nextPage" type="button">Вперёд →</button>
+    <div class="muted" id="pageInfo"></div>
+  </div>
 
   <!-- ДЕТАЛИ -->
   <div id="detail" class="panel" style="display:none; margin-top:12px"></div>
+</div>
+
+<!-- МОДАЛ ПИКЕРА ТОВАРОВ -->
+<div id="productModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:#141823; border:1px solid #2a2f39; border-radius:12px; max-width:900px; width:95%; padding:16px; max-height:80vh; overflow:auto;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px">
+      <h3 style="margin:0">Выбор товара</h3>
+      <button class="btn danger" id="closePicker" type="button">Закрыть</button>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 120px 120px; gap:10px; align-items:end; margin-bottom:8px">
+      <input type="text" id="pSearch" placeholder="Поиск по типу/описанию">
+      <input type="number" id="pQty" min="1" value="1" />
+      <button class="btn primary" id="pAddSelected" type="button">Добавить</button>
+    </div>
+
+    <div id="pList" class="panel">Загрузка…</div>
+  </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-const fmt = (v)=> v ?? "-";
-let ORDERS = [];      // оригинальные данные
-let FILTERED = [];    // отфильтрованные
+/* ====== STATE / HELPERS ====== */
+const STATUSES = ["pending","processing","paid","shipped","done","canceled"];
+let ORDERS=[],LIMIT=50,OFFSET=0,HAS_NEXT=false;
+let CREATE_CART=[],PRODUCTS_CACHE=[],PRODUCTS_SELECTED=null;
+let PICK_MODE=null,PICK_ORDER_ID=null;
+let CURRENT_ORDER=null;
 
-function debounce(fn, ms=300){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
+const $=(s)=>document.querySelector(s),$$=(s)=>Array.from(document.querySelectorAll(s));
+const fmt=(v)=>v??"-";
+const money=(v)=> (v==null?0:v).toLocaleString("ru-RU",{minimumFractionDigits:2, maximumFractionDigits:2});
+const totalOf=(o)=>(o.total_amount??o.total_price??0)||0;
 
-function parseStatuses(s){
-  return s.split(",").map(x=>x.trim().toLowerCase()).filter(Boolean);
-}
+function qstr(p){const s=new URLSearchParams();Object.entries(p).forEach(([k,v])=>{if(v!==undefined&&v!==null&&v!=="") s.set(k,v)});return s.toString()?("?"+s):"";}
+function debounce(fn,ms=300){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);};}
 
-function totalOf(o){
-  return (o.total_amount ?? o.total_price ?? 0) || 0;
-}
-
-function applyFilters(){
-  const email = document.getElementById("fEmail").value.trim().toLowerCase();
-  const statuses = parseStatuses(document.getElementById("fStatuses").value);
-  const sort = document.getElementById("fSort").value;
-
-  let rows = ORDERS.slice();
-
-  if (email){
-    rows = rows.filter(o => (o.user?.email ?? String(o.user_id ?? "")).toLowerCase().includes(email));
-  }
-  if (statuses.length){
-    rows = rows.filter(o => statuses.includes(String(o.status ?? "").toLowerCase()));
-  }
-
-  if (sort === "total_asc") rows.sort((a,b)=> totalOf(a) - totalOf(b));
-  if (sort === "total_desc") rows.sort((a,b)=> totalOf(b) - totalOf(a));
-
-  FILTERED = rows;
-  renderTable(rows);
-}
-
-function renderTable(data){
-  const grid = document.getElementById("grid");
-  if(!data.length){ grid.innerHTML = "<div class='muted'>Нет заказов</div>"; return; }
-  const rows = data.map(o => `
-    <tr data-id="${o.id}">
-      <td>${o.id}</td>
-      <td>${fmt(o.user?.email ?? o.user_id)}</td>
-      <td>${fmt(o.status)}</td>
-      <td>${fmt(totalOf(o))}</td>
-      <td style="white-space:nowrap;display:flex;gap:6px">
-        <button class="btn sm" data-act="open" data-id="${o.id}">Открыть</button>
-        <button class="btn sm danger" data-act="del" data-id="${o.id}">Удалить</button>
-      </td>
-    </tr>
-  `).join("");
-  grid.innerHTML = `
-    <table class="tbl">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Пользователь</th>
-          <th>Статус</th>
-          <th>Сумма</th>
-          <th>Действия</th>
-        </tr>
-      </thead>
-      <tbody>${rows}</tbody>
-    </table>`;
-}
-
-async function ensureSU() {
-  const me = await authFetch("/users/me");
-  if (!me.ok) { clearToken(); location.replace("/admin/login"); return null; }
-  const u = await me.json();
-  if (!u.is_superuser) { clearToken(); location.replace("/admin/login"); return null; }
+/* ====== AUTH / GUARDS ====== */
+async function ensureSU(){
+  const me=await authFetch("/users/me");
+  if(!me.ok){clearToken?.();location.replace("/admin/login");return null;}
+  const u=await me.json();
+  if(!u.is_superuser){clearToken?.();location.replace("/admin/login");return null;}
   return u;
 }
 
-async function loadOrders() {
-  const ok = await ensureSU(); if(!ok) return;
-  const r = await authFetch("/orders/?limit=200&offset=0");
-  const grid = document.getElementById("grid");
-  if (!r.ok) { grid.innerHTML = `<div class="error">Ошибка: ${await r.text()}</div>`; return; }
-  ORDERS = await r.json();
-  applyFilters();
+/* ====== LOAD LIST ====== */
+function getServerFilters(){
+  const email=$('#fEmail').value.trim();
+  const statuses=Array.from($('#fStatuses').selectedOptions).map(o=>o.value).join(',');
+  const sort=$('#fSort').value;
+  return {email,statuses,sort};
 }
 
-async function openOrder(orderId) {
-  const ok = await ensureSU(); if(!ok) return;
-  const r = await authFetch(`/orders/${orderId}`);
-  const box = document.getElementById("detail");
-  if (!r.ok) { box.style.display="block"; box.innerHTML = `<div class="error">Ошибка: ${await r.text()}</div>`; return; }
-  const o = await r.json();
+async function loadOrders(){
+  const ok=await ensureSU();if(!ok)return;
+  const {email,statuses,sort}=getServerFilters();
+  const url=`/orders/${qstr({limit:LIMIT,offset:OFFSET,email,statuses,sort})}`;
+  const grid=$('#grid'),err=$('#gridError');err.style.display='none';
+  try{
+    const r=await authFetch(url);
+    if(!r.ok){grid.innerHTML="";err.textContent=`Ошибка ${r.status}: ${await r.text()}`;err.style.display='block';return;}
+    const data=await r.json();ORDERS=Array.isArray(data)?data:[];HAS_NEXT=ORDERS.length===LIMIT;
+    $('#prevPage').disabled=OFFSET===0;$('#nextPage').disabled=!HAS_NEXT;
+    $('#pageInfo').textContent=`Показано ${ORDERS.length?OFFSET+1:0}–${OFFSET+ORDERS.length}`;
+    renderTable(ORDERS);
+  }catch(e){err.textContent="Ошибка сети "+e.message;err.style.display='block';}
+}
 
-  const itemsRows = (o.items ?? []).map(it => `
+function renderTable(d){
+  const g=$('#grid');
+  if(!d.length){g.innerHTML="<div class='muted'>Нет заказов</div>";return;}
+  g.innerHTML=`
+    <table class="tbl">
+      <thead><tr><th>ID</th><th>Пользователь</th><th>Статус</th><th>Сумма</th><th style="width:220px"></th></tr></thead>
+      <tbody>${d.map(o=>`
+        <tr>
+          <td>${o.id}</td>
+          <td>${fmt(o.user?.email??o.user_id)}</td>
+          <td>${fmt(o.status)}</td>
+          <td>${money(totalOf(o))} ₽</td>
+          <td>
+            <button class="btn sm" data-act="open" data-id="${o.id}">Открыть</button>
+            <button class="btn sm danger" data-act="del" data-id="${o.id}">Удалить</button>
+          </td>
+        </tr>`).join("")}
+      </tbody>
+    </table>`;
+}
+
+/* ====== DETAILS ====== */
+function renderOrderDetail(o){
+  CURRENT_ORDER=o;
+  const d=$('#detail');
+  const items=(o.items||[]).map(it=>`
     <tr>
       <td>${it.id}</td>
-      <td>${fmt(it.product_id)}</td>
-      <td>
-        <input type="number" min="1" value="${it.quantity ?? 1}" data-item-id="${it.id}" class="qty-input" style="width:80px"/>
-        <button class="btn sm" data-act="update-item" data-order-id="${o.id}" data-item-id="${it.id}">OK</button>
-      </td>
-      <td>${fmt(it.price)}</td>
-      <td><button class="btn sm danger" data-act="remove-item" data-order-id="${o.id}" data-item-id="${it.id}">Удалить</button></td>
-    </tr>
-  `).join("");
+      <td>${fmt(it.product?.type||it.title||("-"))}</td>
+      <td>${fmt(it.product?.size||"-")}</td>
+      <td>${fmt(it.product?.color||"-")}</td>
+      <td>${money(it.price ?? it.product?.price ?? 0)} ₽</td>
+      <td>${it.quantity}</td>
+      <td>${money((it.price ?? it.product?.price ?? 0)*it.quantity)} ₽</td>
+      <td><button class="btn sm danger" data-act="rm-item" data-item-id="${it.id}">Удалить</button></td>
+    </tr>`).join("");
 
-  box.style.display = "block";
-  box.innerHTML = `
-    <h3 style="margin:0 0 8px">Заказ #${o.id}</h3>
-    <div class="kv"><span>Пользователь</span><b>${fmt(o.user?.email ?? o.user_id)}</b></div>
-    <div class="kv"><span>Статус</span><b>${fmt(o.status)}</b></div>
-    <div class="kv"><span>Сумма</span><b>${fmt(totalOf(o))}</b></div>
-
-    <div style="margin:12px 0; display:grid; grid-template-columns:1fr 120px; gap:8px; align-items:end">
-      <div>
-        <label>Новый статус</label>
-        <input type="text" id="statusInput" placeholder="например: paid / shipped" value="${fmt(o.status) !== '-' ? o.status : ''}">
+  d.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <h3 style="margin:0">Заказ #${o.id}</h3>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn" data-act="add-item" data-id="${o.id}">Добавить товар</button>
+        <button class="btn danger" data-act="close-detail">Закрыть</button>
       </div>
-      <button class="btn" data-act="update-status" data-id="${o.id}">Сохранить статус</button>
     </div>
 
-    <h4 style="margin:14px 0 6px">Позиции</h4>
-    <table class="tbl">
-      <thead><tr><th>ID</th><th>Product</th><th>Кол-во</th><th>Цена</th><th></th></tr></thead>
-      <tbody>${itemsRows || '<tr><td colspan="5" class="muted">Нет позиций</td></tr>'}</tbody>
-    </table>
-
-    <div style="margin-top:10px; display:grid; grid-template-columns:150px 120px 1fr; gap:8px; align-items:end">
-      <div>
-        <label>Product ID</label>
-        <input type="number" id="addProductId" min="1" placeholder="123">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">
+      <div class="panel">
+        <div class="muted">Пользователь</div>
+        <div>${fmt(o.user?.email??o.user_id)}</div>
       </div>
-      <div>
-        <label>Qty</label>
-        <input type="number" id="addQty" min="1" value="1">
+      <div class="panel">
+        <div class="muted">Создан</div>
+        <div>${fmt(o.created_at ?? o.created ?? "-")}</div>
       </div>
-      <button class="btn primary" data-act="add-item" data-id="${o.id}">Добавить позицию</button>
     </div>
 
-    <div style="margin-top:14px">
-      <button class="btn danger" data-act="del" data-id="${o.id}">Удалить заказ</button>
+    <div class="panel" style="margin-bottom:8px">
+      <div style="display:flex;gap:10px;align-items:end;flex-wrap:wrap">
+        <div>
+          <label>Статус</label>
+          <select id="dStatus">
+            ${STATUSES.map(s=>`<option value="${s}" ${s===o.status?'selected':''}>${s}</option>`).join("")}
+          </select>
+        </div>
+        <button class="btn" data-act="status-save" data-id="${o.id}">Сохранить статус</button>
+        <div class="muted">Сумма: <b>${money(totalOf(o))} ₽</b></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <table class="tbl">
+        <thead><tr>
+          <th>ID поз.</th><th>Товар</th><th>Размер</th><th>Цвет</th>
+          <th>Цена</th><th>Кол-во</th><th>Итого</th><th></th>
+        </tr></thead>
+        <tbody>
+          ${items || `<tr><td colspan="8" class="muted">Нет позиций</td></tr>`}
+        </tbody>
+      </table>
     </div>
   `;
+  d.style.display="block";
+  d.scrollIntoView({behavior:"smooth",block:"start"});
 }
 
-function parsePairsToPayload(pairsStr) {
-  if (!pairsStr.trim()) return [];
-  return pairsStr.split(",").map(x=>x.trim()).filter(Boolean).map(pair=>{
-    const [pid, qty] = pair.split(":").map(v=>v.trim());
-    return { product_id:Number(pid), quantity:Number(qty||1) };
-  }).filter(it=> Number.isFinite(it.product_id) && Number.isFinite(it.quantity) && it.quantity>=1);
+async function openOrder(id){
+  const r=await authFetch(`/orders/${id}`);
+  if(!r.ok){alert(`Не удалось открыть заказ #${id}: ${await r.text()}`);return;}
+  const o=await r.json();
+  renderOrderDetail(o);
 }
 
-/* EVENTS */
-document.getElementById("reload").addEventListener("click", loadOrders);
-
-document.getElementById("grid").addEventListener("click", async (e)=>{
-  const btn = e.target.closest("button[data-act]");
-  if(!btn) return;
-  const id = btn.getAttribute("data-id");
-  if(btn.dataset.act==="del"){
-    if(!confirm(`Удалить заказ ${id}?`)) return;
-    const r = await authFetch(`/orders/${id}`,{method:"DELETE"});
-    if(r.status===204){ document.getElementById("detail").style.display="none"; loadOrders(); }
-    else alert(await r.text());
+/* ====== PRODUCTS PICKER ====== */
+async function openProductPicker(mode,id=null){
+  PICK_MODE=mode;PICK_ORDER_ID=id;PRODUCTS_SELECTED=null;$('#pQty').value=1;
+  if(!PRODUCTS_CACHE.length){
+    const r=await authFetch("/products/?limit=200&offset=0");
+    if(!r.ok){alert(await r.text());return;}
+    PRODUCTS_CACHE=await r.json();
   }
-  if(btn.dataset.act==="open"){ openOrder(id); }
-});
-
-document.getElementById("detail").addEventListener("click", async (e)=>{
-  const btn = e.target.closest("button[data-act]");
-  if(!btn) return;
-  const orderId = btn.getAttribute("data-id") || btn.getAttribute("data-order-id");
-
-  if(btn.dataset.act==="update-status"){
-    const payload = { status: document.getElementById("statusInput").value };
-    const r = await authFetch(`/orders/${orderId}/meta`,{
-      method:"PATCH", headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify(payload)
-    });
-    if(!r.ok) return alert(await r.text());
-    await openOrder(orderId); loadOrders();
-  }
-
-  if(btn.dataset.act==="add-item"){
-    const pid = Number(document.getElementById("addProductId").value);
-    const qty = Number(document.getElementById("addQty").value || 1);
-    if(!Number.isFinite(pid)||pid<=0) return alert("Укажи корректный product_id");
-    if(!Number.isFinite(qty)||qty<=0) return alert("Кол-во должно быть >=1");
-    const r = await authFetch(`/orders/${orderId}/items`,{
-      method:"POST", headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ product_id: pid, quantity: qty })
-    });
-    if(!r.ok) return alert(await r.text());
-    await openOrder(orderId); loadOrders();
-  }
-
-  if(btn.dataset.act==="remove-item"){
-    const itemId = btn.getAttribute("data-item-id");
-    const r = await authFetch(`/orders/${orderId}/items/${itemId}`, { method:"DELETE" });
-    if(!r.ok) return alert(await r.text());
-    await openOrder(orderId); loadOrders();
-  }
-
-  if(btn.dataset.act==="update-item"){
-    const itemId = btn.getAttribute("data-item-id");
-    const qtyInput = document.querySelector(`.qty-input[data-item-id="${itemId}"]`);
-    const qty = Number(qtyInput.value || 1);
-    if(!Number.isFinite(qty)||qty<=0) return alert("Кол-во должно быть >=1");
-    const r = await authFetch(`/orders/${orderId}/items/${itemId}`,{
-      method:"PATCH", headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ quantity: qty })
-    });
-    if(!r.ok) return alert(await r.text());
-    await openOrder(orderId); loadOrders();
-  }
-
-  if(btn.dataset.act==="del"){
-    if(!confirm(`Удалить заказ ${orderId}?`)) return;
-    const r = await authFetch(`/orders/${orderId}`,{method:"DELETE"});
-    if(r.status===204){ document.getElementById("detail").style.display="none"; loadOrders(); }
-    else alert(await r.text());
-  }
-});
-
-document.getElementById("toggleCreate").addEventListener("click", ()=>{
-  const box = document.getElementById("createBox");
-  box.style.display = (box.style.display === "none" || !box.style.display) ? "block" : "none";
-});
-
-document.getElementById("createForm").addEventListener("submit", async (e)=>{
-  e.preventDefault();
-  const err = document.getElementById("createError");
-  err.style.display = "none";
-  const items = parsePairsToPayload(e.target.elements["pairs"].value || "");
-  if(!items.length){ err.textContent="Нужно указать хотя бы одну пару product_id:qty"; err.style.display="block"; return; }
-  const r = await authFetch("/orders",{
-    method:"POST", headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({ items })
+  renderProductsList("");$('#productModal').style.display="flex";
+}
+function closeProductPicker(){$('#productModal').style.display="none";}
+function renderProductsList(s){
+  s=(s||"").toLowerCase();const list=$('#pList');
+  const rows=PRODUCTS_CACHE
+    .filter(p=>!s||p.type?.toLowerCase().includes(s)||(p.description||"").toLowerCase().includes(s))
+    .map(p=>`<tr data-pid="${p.id}" class="p-row">
+      <td>${p.id}</td><td>${fmt(p.type)}</td><td>${fmt(p.size)}</td><td>${fmt(p.color)}</td><td>${money(p.price||0)} ₽</td>
+    </tr>`).join("");
+  list.innerHTML=`<table class="tbl">
+    <thead><tr><th>ID</th><th>Тип</th><th>Размер</th><th>Цвет</th><th>Цена</th></tr></thead>
+    <tbody>${rows||"<tr><td colspan=5 class=muted>Нет товаров</td></tr>"}</tbody></table>`;
+  $$('#pList .p-row').forEach(tr=>{
+    tr.onclick=()=>{
+      $$('#pList .p-row').forEach(x=>x.style.background="");
+      tr.style.background="#1b2231";
+      PRODUCTS_SELECTED=PRODUCTS_CACHE.find(p=>p.id==tr.dataset.pid);
+    };
   });
-  if(!r.ok){ err.textContent = await r.text(); err.style.display="block"; return; }
-  e.target.reset(); document.getElementById("createBox").style.display="none"; loadOrders();
-});
+}
 
-/* FILTER EVENTS */
-const onFilterChanged = debounce(applyFilters, 200);
-document.getElementById("fEmail").addEventListener("input", onFilterChanged);
-document.getElementById("fStatuses").addEventListener("input", onFilterChanged);
-document.getElementById("fSort").addEventListener("change", onFilterChanged);
+function renderCreateCart(){
+  const box=$('#createCart');
+  if(!CREATE_CART.length){box.innerHTML='<div class="muted">Корзина пуста</div>';return;}
+  box.innerHTML=`<table class="tbl"><thead>
+    <tr><th>ID</th><th>Товар</th><th>Кол-во</th><th></th></tr></thead><tbody>
+    ${CREATE_CART.map((it,i)=>`<tr>
+      <td>${it.product_id}</td><td>${fmt(it.title)}</td><td>${it.quantity}</td>
+      <td><button class="btn sm danger" data-act="rm-cart" data-idx="${i}">Удалить</button></td>
+    </tr>`).join("")}
+  </tbody></table>`;
+}
 
+/* ====== TOP ACTIONS / FILTERS ====== */
+$('#reload').onclick=()=>{OFFSET=0;loadOrders();}
+$('#prevPage').onclick=()=>{if(OFFSET>=LIMIT){OFFSET-=LIMIT;loadOrders();}}
+$('#nextPage').onclick=()=>{if(HAS_NEXT){OFFSET+=LIMIT;loadOrders();}}
+
+const filterChanged=debounce(()=>{OFFSET=0;loadOrders();},250);
+$('#fEmail').oninput=filterChanged;$('#fStatuses').onchange=filterChanged;$('#fSort').onchange=filterChanged;
+
+$('#resetFilters').onclick=()=>{
+  $('#fEmail').value="";
+  $('#fStatuses').selectedIndex=-1;
+  $('#fSort').value="none";
+  OFFSET=0;loadOrders();
+};
+
+$('#toggleCreate').onclick=()=>$('#createBox').style.display=$('#createBox').style.display==="none"?"block":"none";
+$('#closeCreate').onclick=()=>$('#createBox').style.display="none";
+$('#pickForCreate').onclick=()=>openProductPicker('create');
+
+/* ====== CREATE ORDER EVENTS ====== */
+$('#createCart').onclick=(e)=>{
+  const b=e.target.closest("[data-act='rm-cart']");if(!b)return;
+  CREATE_CART.splice(b.dataset.idx,1);renderCreateCart();
+};
+
+$('#createForm').onsubmit=async e=>{
+  e.preventDefault();const err=$('#createError');err.style.display="none";
+  if(!CREATE_CART.length){err.textContent="Добавьте товар";err.style.display="block";return;}
+  const r=await authFetch("/orders",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({items:CREATE_CART.map(x=>({product_id:x.product_id,quantity:x.quantity}))})});
+  if(!r.ok){err.textContent=await r.text();err.style.display="block";return;}
+  CREATE_CART=[];renderCreateCart();$('#createBox').style.display="none";loadOrders();
+};
+
+/* ====== GRID DELEGATION (Открыть / Удалить) ====== */
+$('#grid').onclick=async (e)=>{
+  const btn=e.target.closest('button[data-act]'); if(!btn) return;
+  const id=btn.dataset.id;
+  if(btn.dataset.act==='open'){
+    await openOrder(id);
+  }else if(btn.dataset.act==='del'){
+    if(!confirm(`Удалить заказ #${id}?`)) return;
+    const r=await authFetch(`/orders/${id}`,{method:"DELETE"});
+    if(!r.ok){alert(`Ошибка удаления: ${await r.text()}`);return;}
+    if(CURRENT_ORDER?.id==+id){$('#detail').style.display='none';CURRENT_ORDER=null;}
+    loadOrders();
+  }
+};
+
+/* ====== DETAIL DELEGATION (статус / позиции / закрыть) ====== */
+$('#detail').onclick=async (e)=>{
+  const btn=e.target.closest('button[data-act]'); if(!btn) return;
+  const act=btn.dataset.act;
+  if(act==='close-detail'){
+    $('#detail').style.display='none'; CURRENT_ORDER=null;
+  }
+  else if(act==='add-item'){
+    const id=btn.dataset.id;
+    await openProductPicker('order', id);
+  }
+  else if(act==='status-save'){
+    const id=btn.dataset.id;
+    const newStatus=$('#dStatus').value;
+    const r=await authFetch(`/orders/${id}/meta`,{
+      method:"PATCH",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({status:newStatus})
+    });
+    if(!r.ok){alert(`Не удалось сохранить статус: ${await r.text()}`);return;}
+    const o=await r.json();
+    renderOrderDetail(o);
+    loadOrders();
+  }
+  else if(act==='rm-item'){
+    const itemId=btn.dataset.itemId;
+    if(!confirm("Удалить позицию?")) return;
+    const r=await authFetch(`/orders/${CURRENT_ORDER.id}/items/${itemId}`,{method:"DELETE"});
+    if(!r.ok){alert(`Ошибка: ${await r.text()}`);return;}
+    await openOrder(CURRENT_ORDER.id); // перерисуем детали
+    loadOrders();
+  }
+};
+
+/* ====== PRODUCT PICKER EVENTS ====== */
+$('#closePicker').onclick=closeProductPicker;
+$('#pSearch').oninput=e=>renderProductsList(e.target.value);
+$('#pAddSelected').onclick=async()=>{
+  const qty=Number($('#pQty').value||1);
+  if(!PRODUCTS_SELECTED){alert("Выберите товар");return;}
+  if(qty<=0){alert("Некорректное количество");return;}
+
+  if(PICK_MODE==='create'){
+    CREATE_CART.push({product_id:PRODUCTS_SELECTED.id,quantity:qty,title:PRODUCTS_SELECTED.type});
+    renderCreateCart();closeProductPicker();
+  } else if(PICK_MODE==='order'){
+    const r=await authFetch(`/orders/${PICK_ORDER_ID}/items`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({product_id:PRODUCTS_SELECTED.id,quantity:qty})
+    });
+    if(!r.ok){alert(await r.text());return;}
+    closeProductPicker();
+    await openOrder(PICK_ORDER_ID); // обновим детали
+    loadOrders();
+  }
+};
+
+/* ====== BOOT ====== */
 loadOrders();
 </script>
 {% endblock %}
+

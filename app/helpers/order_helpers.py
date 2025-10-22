@@ -1,8 +1,8 @@
-from typing import List, Sequence, Tuple
+from typing import List, Sequence, Tuple, Optional
 from fastapi import HTTPException
-from sqlalchemy import select, func
+from sqlalchemy import select, func, asc, desc
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectinload, joinedload
 
 from app.models.models import Order, OrderItem, Product, User
 
@@ -66,16 +66,48 @@ async def list_orders_for_user(
     return (await db.execute(q)).scalars().all()
 
 async def list_all_orders(
-    db: AsyncSession, *, limit: int = 50, offset: int = 0
-) -> Sequence[Order]:
-    q = (
+    db: AsyncSession,
+    limit: int = 50,
+    offset: int = 0,
+    email: Optional[str] = None,
+    statuses: Optional[str] = None,
+    sort: Optional[str] = None,
+) -> List[Order]:
+    stmt = (
         select(Order)
-        .order_by(Order.created_at.desc())
-        .limit(limit)
-        .offset(offset)
-        .options(selectinload(Order.items).selectinload(OrderItem.product))
+        .options(
+            joinedload(Order.user),
+            joinedload(Order.items),
+        )
     )
-    return (await db.execute(q)).scalars().all()
+
+    # фильтр по email
+    if email:
+        email_like = f"%{email.strip().lower()}%"
+        # join с User
+        stmt = stmt.join(User, User.id == Order.user_id)
+        stmt = stmt.where(User.email.ilike(email_like))
+
+    if statuses:
+        values = [s.strip() for s in statuses.split(",") if s.strip()]
+        if values:
+            stmt = stmt.where(Order.status.in_(values))
+
+    if sort == "total_asc":
+        stmt = stmt.order_by(asc(Order.total_amount if hasattr(Order, "total_amount") else Order.total_price))
+    elif sort == "total_desc":
+        stmt = stmt.order_by(desc(Order.total_amount if hasattr(Order, "total_amount") else Order.total_price))
+    elif sort == "created_asc":
+        stmt = stmt.order_by(asc(Order.created_at))  # поле подгони, если называется иначе
+    elif sort == "created_desc":
+        stmt = stmt.order_by(desc(Order.created_at))
+    else:
+        stmt = stmt.order_by(desc(Order.id))
+
+    stmt = stmt.limit(limit).offset(offset)
+    result = await db.execute(stmt)
+    rows = result.scalars().unique().all()
+    return rows
 
 async def create_order(
     db: AsyncSession, requester: User, items: List[Tuple[int, int]]

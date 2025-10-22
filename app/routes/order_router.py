@@ -75,14 +75,25 @@ async def orders_get_one(
 async def orders_list_all(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
+    email: str | None = Query(None, description="фильтр по email пользователя"),
+    statuses: str | None = Query(None, description="список статусов через запятую"),
+    sort: str | None = Query(None, description="total_asc|total_desc|created_asc|created_desc"),
     user: User = Depends(current_superuser),
     db: AsyncSession = Depends(get_db),
 ):
     try:
-        rows = await list_all_orders(db, limit=limit, offset=offset)
+        rows = await list_all_orders(
+            db,
+            limit=limit,
+            offset=offset,
+            email=email,
+            statuses=statuses,
+            sort=sort,
+        )
         return rows
     except Exception as e:
         raise handle_error(e, app_logger, "orders_list_all")
+
 
 
 @orders_router.post("/{order_id}/items", response_model=OrderOut)
