@@ -26,8 +26,8 @@ async def lifespan_func(app: FastAPI):
     await create_product()
     print("База готова")
     yield
-    await to_shutdown()
-    print("База очищена")
+    # await to_shutdown()
+    # print("База очищена")
 
 app = FastAPI(lifespan=lifespan_func)
 
