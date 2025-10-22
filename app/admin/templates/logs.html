@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Логи{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-head">
+    <h2>Логи, ошибки</h2>
+    <div class="actions">
+      <button id="reload" class="btn">Обновить</button>
+    </div>
+  </div>
+  <pre id="logbox" class="logbox">Загрузка…</pre>
+  <div class="muted" style="margin-top:8px">
+    Ожидается эндпоинт: <code>GET /logs?limit=200</code> → <code>{"lines": [...]}</code>.
+    Если его нет, добавь простой роут на бэке и верни последние строки файла логов.
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+async function loadLogs(){
+  const me = await authFetch("/users/me");
+  if(!me.ok){ clearToken(); return location.replace("/admin/login"); }
+  const u = await me.json();
+  if(!u.is_superuser){ clearToken(); return location.replace("/admin/login"); }
+
+  const box = document.getElementById("logbox");
+  const r = await authFetch("/logs?limit=200");
+  if(!r.ok){ box.textContent = `Ошибка: ${r.status} ${await r.text()}`; return; }
+  const data = await r.json();
+  const lines = Array.isArray(data.lines) ? data.lines.join("\n") : JSON.stringify(data,null,2);
+  box.textContent = lines || "(пусто)";
+}
+document.getElementById("reload").addEventListener("click", loadLogs);
+loadLogs();
+</script>
+{% endblock %}

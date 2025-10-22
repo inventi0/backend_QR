@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Продукты{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-head">
+    <h2>Продукты</h2>
+    <div class="actions">
+      <button id="reload" class="btn">Обновить</button>
+    </div>
+  </div>
+  <div id="grid" class="panel">Загрузка…</div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+async function loadProducts(){
+  const me = await authFetch("/users/me");
+  if(!me.ok){ clearToken(); return location.replace("/admin/login"); }
+  const u = await me.json();
+  if(!u.is_superuser){ clearToken(); return location.replace("/admin/login"); }
+
+  const r = await authFetch("/products?limit=50&offset=0");
+  const grid = document.getElementById("grid");
+  if(!r.ok){ grid.innerHTML = `<div class="error">Ошибка: ${await r.text()}</div>`; return; }
+  const data = await r.json();
+  if(!data.length){ grid.innerHTML = "<div class='muted'>Нет продуктов</div>"; return; }
+  const rows = data.map(p=>`
+    <tr>
+      <td>${p.id}</td>
+      <td>${p.type ?? "-"}</td>
+      <td>${p.size ?? "-"}</td>
+      <td>${p.color ?? "-"}</td>
+      <td>${p.price ?? "-"}</td>
+    </tr>
+  `).join("");
+  grid.innerHTML = `
+    <table class="tbl">
+      <thead><tr><th>ID</th><th>Тип</th><th>Размер</th><th>Цвет</th><th>Цена</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+document.getElementById("reload").addEventListener("click", loadProducts);
+loadProducts();
+</script>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Пользователи{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-head">
+    <h2>Пользователи</h2>
+    <div class="actions">
+      <button id="reload" class="btn">Обновить</button>
+    </div>
+  </div>
+  <div id="grid" class="panel">Загрузка…</div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+async function loadUsers(){
+  const me = await authFetch("/users/me");
+  if(!me.ok){ clearToken(); return location.replace("/admin/login"); }
+  const u = await me.json();
+  if(!u.is_superuser){ clearToken(); return location.replace("/admin/login"); }
+
+  const r = await authFetch("/users");  // FastAPI Users: список доступен только суперюзеру
+  const grid = document.getElementById("grid");
+  if(!r.ok){ grid.innerHTML = `<div class="error">Ошибка: ${await r.text()}</div>`; return; }
+  const data = await r.json();
+  if(!data.length){ grid.innerHTML = "<div class='muted'>Нет пользователей</div>"; return; }
+  const rows = data.map(u=>`
+    <tr>
+      <td>${u.id}</td>
+      <td>${u.email}</td>
+      <td>${u.username ?? "-"}</td>
+      <td>${u.is_active ? "active" : "blocked"}</td>
+      <td>${u.is_superuser ? "yes" : "no"}</td>
+    </tr>
+  `).join("");
+  grid.innerHTML = `
+    <table class="tbl">
+      <thead><tr><th>ID</th><th>Email</th><th>Имя</th><th>Статус</th><th>SU</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+document.getElementById("reload").addEventListener("click", loadUsers);
+loadUsers();
+</script>
+{% endblock %}

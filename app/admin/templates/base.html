@@ -2,37 +2,64 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>{% block title %}Admin{% endblock %}</title>
-  <link rel="stylesheet" href="/admin/static/admin.css">
+  <link rel="stylesheet" href="{{ request.url_for('static', path='admin.css') }}">
 </head>
-<body>
-<nav class="topbar">
-  <div class="brand"><a href="/admin/dashboard">Admin</a></div>
-  <div class="spacer"></div>
-  <button id="logoutBtn" class="btn danger">Выйти</button>
-</nav>
-<main class="container">
-  {% block content %}{% endblock %}
-</main>
+<body class="admin-body">
+{% if show_tabs %}
+<header class="admin-topbar">
+  <div class="admin-brand"><span>Admin</span></div>
+  <div class="admin-spacer"></div>
+  <button id="logoutBtn" class="admin-btn admin-danger">Выйти</button>
+</header>
+{% endif %}
+
+<div id="admin-root" class="admin-layout{% if not show_tabs %} admin-login-layout{% endif %}">
+  {% if show_tabs %}
+  <aside class="admin-sidebar">
+    <div class="admin-group">
+      <div class="admin-group-title">Панель</div>
+      <a class="admin-tab" data-path="/admin/orders"   href="/admin/orders">Заказы</a>
+      <a class="admin-tab" data-path="/admin/logs"     href="/admin/logs">Логи, ошибки</a>
+    </div>
+    <div class="admin-group">
+      <div class="admin-group-title">Данные</div>
+      <a class="admin-tab" data-path="/admin/users"    href="/admin/users">Пользователи</a>
+      <a class="admin-tab" data-path="/admin/products" href="/admin/products">Продукты</a>
+    </div>
+    <div class="admin-group">
+      <div class="admin-group-title">Профиль</div>
+      <a class="admin-tab" data-path="/admin/profile"  href="/admin/profile">Информация о пользователе</a>
+    </div>
+  </aside>
+  {% endif %}
+
+  <main class="admin-content">
+    {% block content %}{% endblock %}
+  </main>
+</div>
+
 <script>
   const TOKEN_KEY = "admin_jwt";
-
   function setToken(t){ localStorage.setItem(TOKEN_KEY, t); }
   function getToken(){ return localStorage.getItem(TOKEN_KEY); }
   function clearToken(){ localStorage.removeItem(TOKEN_KEY); }
-
-  document.getElementById("logoutBtn")?.addEventListener("click", ()=>{
-    clearToken();
-    location.href = "/admin/login";
-  });
-
   async function authFetch(url, options = {}){
-    const token = getToken();
     const headers = new Headers(options.headers || {});
+    const token = getToken();
     if (token) headers.set("Authorization", "Bearer " + token);
     return fetch(url, { ...options, headers });
   }
+  document.getElementById("logoutBtn")?.addEventListener("click", ()=>{
+    clearToken(); location.href = "/admin/login";
+  });
+  (function markActive(){
+    const here = location.pathname;
+    document.querySelectorAll(".admin-sidebar .admin-tab")?.forEach(a=>{
+      if (a.getAttribute("data-path") === here) a.classList.add("active");
+    });
+  })();
 </script>
 {% block scripts %}{% endblock %}
 </body>

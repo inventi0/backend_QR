@@ -38,7 +38,7 @@
         clearToken();
         throw new Error("Доступ только для суперпользователей");
       }
-      location.href = "/admin/dashboard";
+      location.href = "/admin/orders";
     } catch (err) {
       errorBox.textContent = err.message || "Ошибка входа";
       errorBox.style.display = "block";
