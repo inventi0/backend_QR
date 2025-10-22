@@ -61,7 +61,7 @@ html,body{height:100%}
 }
 
 /* Content */
-.admin-content{flex:1 1 auto; min-width:0; padding:20px;}
+.admin-content{min-width:0; padding:20px;}
 
 /* Groups & Tabs */
 .admin-group{display:flex; flex-direction:column; gap:6px}

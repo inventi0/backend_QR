@@ -1,36 +1,184 @@
 {% extends "base.html" %}
 {% block title %}Логи{% endblock %}
+
 {% block content %}
 <div class="card">
   <div class="card-head">
-    <h2>Логи, ошибки</h2>
-    <div class="actions">
+    <h2 style="display:flex;align-items:center;gap:10px">
+      Логи
+      <span id="statusDot" title="offline" style="width:8px;height:8px;border-radius:50%;background:#b15;border:1px solid #e4b;display:inline-block"></span>
+    </h2>
+    <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap">
+      <select id="fileSel" class="btn" style="min-width:200px"></select>
+      <input id="search" class="btn" placeholder="Фильтр (regex / текст)" style="min-width:240px" />
+      <select id="limit" class="btn" title="Последние N строк">
+        <option>200</option><option selected>1000</option><option>2000</option><option>5000</option>
+      </select>
+      <label style="display:flex;gap:6px;align-items:center"><input id="wrap" type="checkbox"> Перенос</label>
+      <label style="display:flex;gap:6px;align-items:center"><input id="autoscroll" type="checkbox" checked> Автоскролл</label>
       <button id="reload" class="btn">Обновить</button>
+      <button id="follow" class="btn">▶︎ Follow</button>
+      <a id="download" class="btn" href="#" download>Скачать</a>
     </div>
   </div>
-  <pre id="logbox" class="logbox">Загрузка…</pre>
-  <div class="muted" style="margin-top:8px">
-    Ожидается эндпоинт: <code>GET /logs?limit=200</code> → <code>{"lines": [...]}</code>.
-    Если его нет, добавь простой роут на бэке и верни последние строки файла логов.
+
+  <div class="panel" style="padding:0;overflow:hidden">
+    <div id="terminal" class="logbox" style="height:62vh"></div>
   </div>
+
+  <div id="err" class="error" style="display:none;margin-top:8px"></div>
 </div>
 {% endblock %}
+
+{% block styles %}
+<style>
+  .logbox{
+    background:#0c0f12; color:#dfe6ee;
+    font:12.5px/1.5 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    padding:12px; overflow:auto; white-space:pre; tab-size:2;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.06), inset 0 0 60px rgba(0,0,0,.6);
+    background-image:
+      radial-gradient(1200px 400px at 0% 0%, rgba(39,61,89,.25), transparent 60%),
+      radial-gradient(800px 300px at 100% 100%, rgba(101,52,120,.2), transparent 60%);
+    border:1px solid rgba(255,255,255,.12); border-radius:10px;
+  }
+  .logbox.wrap { white-space: pre-wrap; }
+  .lvl-debug { color:#8aa1b4; opacity:.85 }
+  .lvl-info  { color:#cfe8ff }
+  .lvl-warn  { color:#ffd479 }
+  .lvl-error { color:#ff7a86; text-shadow:0 0 2px rgba(255,0,0,.25) }
+  .lvl-critical { color:#ff3b3b; font-weight:600 }
+  .ts { color:#8b98a7 }
+  .tag { color:#9ddc97 }
+  .dim { opacity:.6 }
+</style>
+{% endblock %}
+
 {% block scripts %}
 <script>
-async function loadLogs(){
-  const me = await authFetch("/users/me");
-  if(!me.ok){ clearToken(); return location.replace("/admin/login"); }
-  const u = await me.json();
-  if(!u.is_superuser){ clearToken(); return location.replace("/admin/login"); }
-
-  const box = document.getElementById("logbox");
-  const r = await authFetch("/logs?limit=200");
-  if(!r.ok){ box.textContent = `Ошибка: ${r.status} ${await r.text()}`; return; }
-  const data = await r.json();
-  const lines = Array.isArray(data.lines) ? data.lines.join("\n") : JSON.stringify(data,null,2);
-  box.textContent = lines || "(пусто)";
+/* === auth с Bearer, как на orders === */
+if (typeof authFetch !== "function") {
+  window.authFetch = (url, opts={}) => fetch(url, {
+    ...opts,
+    headers: {
+      "Authorization": `Bearer ${localStorage.getItem("token")||""}`,
+      ...(opts.headers||{})
+    }
+  });
 }
-document.getElementById("reload").addEventListener("click", loadLogs);
-loadLogs();
+
+const $ = (s)=>document.querySelector(s);
+const term = $("#terminal");
+const statusDot = $("#statusDot");
+const fileSel = $("#fileSel");
+const limitSel = $("#limit");
+const inputSearch = $("#search");
+const toggleWrap = $("#wrap");
+const toggleAuto = $("#autoscroll");
+const btnReload = $("#reload");
+const btnFollow = $("#follow");
+const linkDownload = $("#download");
+const errBox = $("#err");
+
+let followTimer = null;
+let lastLines = []; // последние полученные строки (до фильтра)
+
+function setStatus(on){
+  statusDot.style.background = on ? "#2ecc71" : "#b15";
+  statusDot.style.borderColor = on ? "#7dffb0" : "#e4b";
+  statusDot.title = on ? "online" : "offline";
+}
+
+function classifyLine(line){
+  let cls = "lvl-info";
+  if(/\b(DEBUG|trace)\b/i.test(line)) cls = "lvl-debug";
+  if(/\b(INFO)\b/i.test(line)) cls = "lvl-info";
+  if(/\b(WARN|WARNING)\b/i.test(line)) cls = "lvl-warn";
+  if(/\b(ERROR|EXCEPTION|Traceback)\b/.test(line)) cls = "lvl-error";
+  if(/\b(CRITICAL|FATAL)\b/.test(line)) cls = "lvl-critical";
+  line = line
+    .replace(/(\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}(?:[.,]\d{3})?)/, '<span class="ts">$1</span>')
+    .replace(/\[([A-Z]+)\]/, '<span class="tag">[$1]</span>');
+  return `<div class="${cls}">${line}</div>`;
+}
+
+function render(lines){
+  const q = inputSearch.value.trim();
+  let src = lines;
+
+  if(q){
+    try{
+      const rx = new RegExp(q, "i");
+      src = lines.filter(l=>rx.test(l));
+    }catch{
+      const s = q.toLowerCase();
+      src = lines.filter(l=>l.toLowerCase().includes(s));
+    }
+  }
+
+  term.innerHTML = src.map(classifyLine).join("") || `<div class="dim">(пусто)</div>`;
+  term.classList.toggle("wrap", toggleWrap.checked);
+  if(toggleAuto.checked) term.scrollTop = term.scrollHeight;
+}
+
+async function loadFiles(){
+  errBox.style.display="none";
+  const r = await authFetch("/logs/files");
+  if(!r.ok){ errBox.textContent = await r.text(); errBox.style.display="block"; return; }
+  const files = await r.json();
+  fileSel.innerHTML = files.map(f=>`<option value="${f}">${f}</option>`).join("");
+  const prefer = files.find(f=>f.includes("app.log")) || files.find(f=>f.includes("error.log")) || files[0];
+  if(prefer) fileSel.value = prefer;
+  linkDownload.href = `/logs/download?file=${encodeURIComponent(fileSel.value)}`;
+}
+
+async function loadTail(){
+  setStatus(false);
+  errBox.style.display="none";
+  const file = fileSel.value;
+  const limit = Number(limitSel.value || 1000);
+  linkDownload.href = `/logs/download?file=${encodeURIComponent(file)}`;
+
+  const r = await authFetch(`/logs?file=${encodeURIComponent(file)}&limit=${limit}`);
+  if(!r.ok){
+    term.textContent = `Ошибка: ${r.status} ${await r.text()}`;
+    setStatus(false);
+    return;
+  }
+  const data = await r.json(); // {lines: [...]}
+  lastLines = Array.isArray(data.lines) ? data.lines : [];
+  render(lastLines);
+  setStatus(true);
+}
+
+/* === follow === */
+function startFollow(){
+  if(followTimer) return;
+  btnFollow.textContent = "⏸ Stop";
+  followTimer = setInterval(loadTail, 2000);
+}
+function stopFollow(){
+  if(followTimer) clearInterval(followTimer);
+  followTimer = null;
+  btnFollow.textContent = "▶︎ Follow";
+}
+
+/* === events === */
+btnReload.addEventListener("click", loadTail);
+btnFollow.addEventListener("click", ()=> followTimer ? stopFollow() : startFollow());
+fileSel.addEventListener("change", ()=>{ stopFollow(); loadTail(); });
+limitSel.addEventListener("change", loadTail);
+inputSearch.addEventListener("input", ()=> render(lastLines));
+toggleWrap.addEventListener("change", ()=> render(lastLines));
+
+/* === boot === */
+(async function init(){
+  try{
+    await loadFiles();
+    await loadTail();
+  }catch(e){
+    term.textContent = `Ошибка инициализации: ${e?.message||e}`;
+  }
+})();
 </script>
 {% endblock %}

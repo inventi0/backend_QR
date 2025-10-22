@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .auth_custom import profile_router, auth_custom_router
 from .faq_router import faq_router
+from .logs_router import logs_router
 from .order_router import orders_router
 from .product_router import products_router
 from .qr_router import qr_router
@@ -101,5 +102,6 @@ app.include_router(faq_router)
 app.include_router(templates_router)
 app.include_router(products_router)
 app.include_router(orders_router)
+app.include_router(logs_router)
 
 app.mount("/admin", admin_star)
