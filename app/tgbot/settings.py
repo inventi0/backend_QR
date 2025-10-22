@@ -28,3 +28,8 @@ class BotSettings(BaseModel):
     merchant_acc: str = Field(default_factory=lambda: os.getenv("MERCHANT_IBAN_OR_ACC", ""))
     default_currency: str = Field(default_factory=lambda: os.getenv("DEFAULT_CURRENCY", "RUB"))
     start_secret: str = Field(default_factory=lambda: os.getenv("START_SECRET", ""))
+
+    # интеграция с бекендом
+    backend_base_url: str = Field(default_factory=lambda: os.getenv("BACKEND_BASE_URL", "http://localhost:8080"))
+    backend_service_token: str | None = Field(default_factory=lambda: os.getenv("BACKEND_SERVICE_TOKEN"))
+    page_size: int = Field(default_factory=lambda: int(os.getenv("BOT_PAGE_SIZE", "10")))

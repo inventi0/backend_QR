@@ -1,3 +1,4 @@
+# app/tgbot/factory.py
 from aiogram import Bot, Dispatcher, Router
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
@@ -5,6 +6,7 @@ from aiogram.enums import ParseMode
 from .settings import BotSettings
 from .middlewares import DBSessionMiddleware
 from .handlers import billing
+from .handlers import orders  # <— добавили
 
 def build_bot_and_dispatcher(settings: BotSettings):
     bot = Bot(settings.token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
@@ -14,6 +16,7 @@ def build_bot_and_dispatcher(settings: BotSettings):
 
     router = Router()
     router.include_router(billing.router)
+    router.include_router(orders.router)   # <— подключили
 
     dp.include_router(router)
     return bot, dp
