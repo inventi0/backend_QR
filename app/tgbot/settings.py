@@ -8,6 +8,16 @@ class BotSettings(BaseModel):
     webhook_path: str = Field(default="/tg/webhook")
     webhook_secret_token: str | None = Field(default_factory=lambda: os.getenv("WEBHOOK_SECRET_TOKEN"))
 
+    backend_base_url: str = Field(default_factory=lambda: os.getenv("BACKEND_BASE_URL", "http://localhost:8080"))
+    backend_service_token: str | None = Field(default_factory=lambda: os.getenv("BACKEND_SERVICE_TOKEN"))
+    orders_path: str = Field(default_factory=lambda: os.getenv("BACKEND_ORDERS_PATH", "/orders"))
+    orders_method: str = Field(default_factory=lambda: os.getenv("BACKEND_ORDERS_METHOD", "GET"))
+
+    # login flow
+    auth_login_path: str = Field(default_factory=lambda: os.getenv("BACKEND_AUTH_LOGIN_PATH", "/auth/login"))
+    login_email: str | None = Field(default_factory=lambda: os.getenv("BACKEND_LOGIN_EMAIL"))
+    login_password: str | None = Field(default_factory=lambda: os.getenv("BACKEND_LOGIN_PASSWORD"))
+
     # бизнес-настройки
     admin_ids: set[int] = Field(
         default_factory=lambda: {
