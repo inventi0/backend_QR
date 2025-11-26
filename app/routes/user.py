@@ -13,7 +13,7 @@ from app.auth.auth import auth_backend
 from app.helpers.helpers import to_start, to_shutdown, create_admin, create_product
 from app.schemas.user_schemas import UserCreate, UserRead, UserOut, UserUpdate
 from .review_router import review_router
-
+from .payment_router import payment_router
 from .templates_router import templates_router
 from ..admin import admin_star
 from ..logging_config import app_logger
@@ -103,5 +103,5 @@ app.include_router(templates_router)
 app.include_router(products_router)
 app.include_router(orders_router)
 app.include_router(logs_router)
-
+app.include_router(payment_router)
 app.mount("/admin", admin_star)
