@@ -9,6 +9,7 @@ from app.helpers.review_helpers import (
     get_reviews_helper,
     update_review_helper,
     delete_review_helper,
+    get_my_review_helper,
 )
 from app.schemas.review_schemas import ReviewCreate, ReviewUpdate, ReviewRead
 from .dependecies import current_user
@@ -30,6 +31,18 @@ async def get_reviews(
         return await get_reviews_helper(db=db, skip=skip, limit=limit)
     except Exception as e:
         raise handle_error(e, app_logger, "get_reviews")
+
+
+@review_router.get("/me", response_model=ReviewRead | None)
+async def get_my_review(
+    user: User = Depends(current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Получить отзыв текущего пользователя (если существует)."""
+    try:
+        return await get_my_review_helper(db=db, user_id=user.id)
+    except Exception as e:
+        raise handle_error(e, app_logger, "get_my_review")
 
 
 @review_router.get("/{review_id}", response_model=ReviewRead)
@@ -70,13 +83,15 @@ async def update_review(
 ):
     """Обновить отзыв (только свой или если суперюзер)."""
     try:
-        review = await update_review_helper(db=db, review_id=review_id, review_in=review_in)
+        # Сначала проверяем права
+        review = await get_review_helper(db=db, review_id=review_id)
         if review.user_id != user.id and not user.is_superuser:
             raise HTTPException(
                 status_code=403,
                 detail={"error": "forbidden", "msg": "Not allowed to edit this review"},
             )
-        return review
+        # Затем обновляем
+        return await update_review_helper(db=db, review_id=review_id, review_in=review_in)
     except Exception as e:
         raise handle_error(e, app_logger, "update_review")
 

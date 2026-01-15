@@ -1,6 +1,7 @@
 services:
   db:
-    image: postgres:16
+    image: postgres:16-alpine
+    restart: unless-stopped
     env_file: ".env"
     environment:
       POSTGRES_USER: ${LOGIN_DB}
@@ -13,19 +14,28 @@ services:
     networks:
       - app_net
     command:
-      [ "postgres", "-c", "log_destination=stderr",
-        "-c", "logging_collector=on",
-        "-c", "log_directory=/var/log/postgresql" ]
+      [ "postgres",
+        "-c", "log_destination=stderr"
+      ]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${LOGIN_DB} -d ${DB_NAME:-app} -h 127.0.0.1"]
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
 
   backend:
     build:
       context: .
+    restart: unless-stopped
     env_file:
       - ".env"
     environment:
@@ -43,6 +53,14 @@ services:
       timeout: 3s
       retries: 6
       start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
 
 networks:
   app_net:
