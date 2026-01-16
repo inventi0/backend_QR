@@ -1,16 +1,21 @@
 import os
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
-from pydantic import EmailStr
+from pydantic import EmailStr, BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from typing import Optional
 
 from app.database import get_db
 from app.routes.dependecies import current_user
 from app.s3.s3 import S3Client
 from app.schemas.user_schemas import UserRead, UserCreate
-from app.models.models import User
+from app.models.models import User, Editor, Template
 from app.helpers.users import set_user_avatar
+from app.helpers.codegen import set_editor_current_template
 from app.auth.manager import get_user_manager
 from fastapi_users import models as fu_models
+from app.error.handler import handle_error
+from app.logging_config import app_logger
 
 auth_custom_router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -55,24 +60,110 @@ async def register_with_avatar(
 
 profile_router = APIRouter(prefix="/users", tags=["users"])
 
-@profile_router.patch("/me", response_model=UserRead)
-async def update_me(
-    username: str | None = Form(default=None),
-    avatar: UploadFile | None = File(default=None),
+@profile_router.patch("/me/avatar", response_model=UserRead)
+async def update_avatar(
+    avatar: UploadFile = File(...),
     user: User = Depends(current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """
-    Обновить профиль: username (опционально) и/или аватар (опционально).
+    Обновить аватар пользователя.
     """
-    if username is not None:
-        user.username = username
-
-    if avatar is not None:
-        s3 = _s3_or_500()
-        await set_user_avatar(db, s3, user, avatar)
-    else:
-        await db.commit()
-        await db.refresh(user)
-
+    s3 = _s3_or_500()
+    await set_user_avatar(db, s3, user, avatar)
     return user
+
+
+class SetActiveTemplateRequest(BaseModel):
+    template_id: int
+    base_url: Optional[str] = None
+
+
+class PublicProfileResponse(BaseModel):
+    user_id: int
+    username: str
+    avatar_url: Optional[str] = None
+    active_template_id: Optional[int] = None
+    active_template_file_url: Optional[str] = None
+    active_template_name: Optional[str] = None
+    is_owner: bool = False
+    qr_image_url: Optional[str] = None
+
+
+@profile_router.patch("/me/active-template")
+async def set_active_template(
+    payload: SetActiveTemplateRequest,
+    user: User = Depends(current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Установить активный шаблон для профиля пользователя.
+    QR-код остается прежним и всегда ведет на /profile/{user_id}.
+    Меняется только Editor.current_template_id.
+    """
+    try:
+        s3 = _s3_or_500()
+        qr, editor, template, profile_url = await set_editor_current_template(
+            db=db,
+            user=user,
+            template_id=payload.template_id,
+            s3=s3,
+            base_url=payload.base_url,
+            regenerate_qr=False,  # ✅ QR остается прежним!
+        )
+        return {
+            "message": "Active template updated",
+            "template_id": template.id,
+            "qr_image_url": qr.link,
+            "profile_url": profile_url,
+        }
+    except Exception as e:
+        raise handle_error(e, app_logger, "set_active_template")
+
+
+@profile_router.get("/{user_id}/profile", response_model=PublicProfileResponse)
+async def get_public_profile(
+    user_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user_optional: Optional[User] = Depends(lambda: None),  # Опциональная авторизация
+):
+    """
+    Получить публичный профиль пользователя с активным шаблоном.
+    Доступно всем (в т.ч. неавторизованным).
+    """
+    try:
+        # Получаем целевого пользователя
+        target_user = await db.get(User, user_id)
+        if not target_user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Получаем редактор и активный шаблон
+        editor = await db.scalar(
+            select(Editor).where(Editor.user_id == user_id)
+        )
+        
+        active_template = None
+        if editor and editor.current_template_id:
+            active_template = await db.get(Template, editor.current_template_id)
+        
+        # Получаем QR
+        from app.models.models import QRCode
+        qr = await db.scalar(select(QRCode).where(QRCode.user_id == user_id))
+        
+        # Проверяем, является ли текущий пользователь владельцем
+        is_owner = current_user_optional and current_user_optional.id == user_id if current_user_optional else False
+        
+        return PublicProfileResponse(
+            user_id=target_user.id,
+            username=target_user.username,
+            avatar_url=target_user.img_url,
+            active_template_id=active_template.id if active_template else None,
+            active_template_file_url=active_template.file_url if active_template else None,
+            active_template_name=active_template.name if active_template else None,
+            is_owner=is_owner,
+            qr_image_url=qr.link if qr else None,
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise handle_error(e, app_logger, "get_public_profile")

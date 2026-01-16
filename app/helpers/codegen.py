@@ -33,19 +33,41 @@ def _generate_qr_image(data: str, tmp_dir: Path) -> Path:
     return file_path
 
 
-def _editor_url(editor_public_id: str) -> str:
+def _editor_url(editor_public_id: str, base_url: str = None) -> str:
+    """Generate editor URL with optional custom base_url"""
+    if base_url:
+        return f"{base_url.rstrip('/')}/editor/{editor_public_id}"
     frontend_base = os.getenv("PUBLIC_FRONTEND_BASE_URL", "").rstrip("/")
     api_base = os.getenv("PUBLIC_API_BASE_URL", "").rstrip("/")
     base = frontend_base or api_base
     return f"{base}/editor/{editor_public_id}" if base else f"/editor/{editor_public_id}"
 
 
+def _profile_url(user_id: int, base_url: str = None) -> str:
+    """Generate profile URL with optional custom base_url"""
+    if base_url:
+        return f"{base_url.rstrip('/')}/profile/{user_id}"
+    frontend_base = os.getenv("PUBLIC_FRONTEND_BASE_URL", "").rstrip("/")
+    api_base = os.getenv("PUBLIC_API_BASE_URL", "").rstrip("/")
+    base = frontend_base or api_base
+    return f"{base}/profile/{user_id}" if base else f"/profile/{user_id}"
+
+
 async def ensure_user_editor_and_qr(
     db: AsyncSession,
     s3: S3Client | None,
     user: User,
+    base_url: str = None,
+    use_profile_url: bool = True,
 ) -> Tuple[Editor, QRCode, str]:
-    """Идемпотентно создаёт Editor и QR для пользователя, если их ещё нет. Возвращает (editor, qr, editor_url)."""
+    """
+    Идемпотентно создаёт Editor и QR для пользователя, если их ещё нет.
+    Возвращает (editor, qr, target_url).
+    
+    Args:
+        use_profile_url: если True, QR ведет на /profile/{user_id}, иначе на /editor/{public_id}
+        base_url: кастомный домен (например, http://localhost:5173)
+    """
     editor = await db.scalar(select(Editor).where(Editor.user_id == user.id))
     if not editor:
         editor = Editor(public_id=_make_slug("ed"), user_id=user.id)
@@ -62,11 +84,15 @@ async def ensure_user_editor_and_qr(
         db.add(qr)
         await db.flush()
 
-    editor_url = _editor_url(editor.public_id)
+    # Выбираем URL: профиль или редактор
+    if use_profile_url:
+        target_url = _profile_url(user.id, base_url)
+    else:
+        target_url = _editor_url(editor.public_id, base_url)
 
     if not qr.link and s3:
         tmp_dir = Path("tmp"); tmp_dir.mkdir(exist_ok=True)
-        file_path = _generate_qr_image(editor_url, tmp_dir)
+        file_path = _generate_qr_image(target_url, tmp_dir)
         object_name = f"qr_codes/{user.id}_{file_path.name}"
         await s3.upload_file(str(file_path), object_name)
         file_path.unlink(missing_ok=True)
@@ -81,7 +107,7 @@ async def ensure_user_editor_and_qr(
     await db.commit()
     await db.refresh(editor)
     await db.refresh(qr)
-    return editor, qr, editor_url
+    return editor, qr, target_url
 
 
 async def get_qr_for_user(
@@ -103,11 +129,21 @@ async def set_editor_current_template(
     user: User,
     template_id: int,
     s3: S3Client | None = None,
+    base_url: str = None,
+    regenerate_qr: bool = False,
 ) -> tuple[QRCode, Editor, Template, str]:
     """
-    Переключить активный шаблон редактора (тем самым «обновить QR» на новый холст).
-    Сам URL в QR остаётся /editor/{public_id} — он не меняется.
-    По желанию можно пересобрать PNG файла QR (регенирация картинки).
+    Переключить активный шаблон редактора.
+    
+    ⚠️ ВАЖНО: QR-код НЕ перегенерируется! Он постоянный.
+    QR всегда ведет на /profile/{user_id}, меняется только Editor.current_template_id.
+    
+    Это позволяет печатать QR на одежде один раз, и он всегда будет работать,
+    показывая текущий активный дизайн пользователя.
+    
+    Args:
+        base_url: кастомный домен для QR-ссылки (используется только при первом создании)
+        regenerate_qr: пересоздать QR-изображение (по умолчанию False, обычно не нужно)
     """
     editor = await db.scalar(select(Editor).where(Editor.user_id == user.id))
     if not editor:
@@ -126,10 +162,12 @@ async def set_editor_current_template(
     if not qr:
         raise HTTPException(status_code=404, detail="QR not found for user")
 
-    if s3:
-        editor_url = _editor_url(editor.public_id)
+    # QR теперь ведет на профиль, а не на редактор
+    profile_url = _profile_url(user.id, base_url)
+
+    if s3 and regenerate_qr:
         tmp_dir = Path("tmp"); tmp_dir.mkdir(exist_ok=True)
-        file_path = _generate_qr_image(editor_url, tmp_dir)
+        file_path = _generate_qr_image(profile_url, tmp_dir)
         object_name = f"qr_codes/{user.id}_{file_path.name}"
         await s3.upload_file(str(file_path), object_name)
         file_path.unlink(missing_ok=True)
@@ -144,4 +182,4 @@ async def set_editor_current_template(
     await db.refresh(editor)
     await db.refresh(qr)
 
-    return qr, editor, tpl, _editor_url(editor.public_id)
+    return qr, editor, tpl, profile_url

@@ -8,4 +8,5 @@ __pycache__
 .png
 certs
 venv/*
-.idea/
+.idea/.env.backup
+logs/*.log

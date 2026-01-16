@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 from fastapi import HTTPException
 from app.models.models import Review, User
 from app.schemas.review_schemas import ReviewCreate, ReviewUpdate
@@ -9,6 +10,16 @@ async def create_review_helper(
     review_in: ReviewCreate,
     user_id: int,
 ) -> Review:
+    # Проверка: пользователь уже оставил отзыв?
+    existing = await db.execute(
+        select(Review).where(Review.user_id == user_id)
+    )
+    if existing.scalar_one_or_none():
+        raise HTTPException(
+            status_code=400, 
+            detail={"error": "already_exists", "msg": "You already have a review. Please edit it instead."}
+        )
+    
     review = Review(**review_in.dict(), user_id=user_id)
     db.add(review)
     await db.commit()
@@ -21,7 +32,9 @@ async def get_review_helper(
 ) -> Review:
     """Получить отзыв по ID (с пользователем)"""
     result = await db.execute(
-        select(Review).where(Review.id == review_id).options()
+        select(Review)
+        .where(Review.id == review_id)
+        .options(selectinload(Review.user))
     )
     review = result.scalar_one_or_none()
     if not review:
@@ -36,7 +49,10 @@ async def get_reviews_helper(
 ) -> list[Review]:
     """Получить список отзывов"""
     result = await db.execute(
-        select(Review).offset(skip).limit(limit)
+        select(Review)
+        .options(selectinload(Review.user))
+        .offset(skip)
+        .limit(limit)
     )
     return result.scalars().all()
 
@@ -72,3 +88,16 @@ async def delete_review_helper(
     await db.delete(review)
     await db.commit()
     return {"status": "success", "message": f"Review {review_id} deleted"}
+
+
+async def get_my_review_helper(
+    db: AsyncSession,
+    user_id: int,
+) -> Review | None:
+    """Получить отзыв текущего пользователя (если есть)"""
+    result = await db.execute(
+        select(Review)
+        .where(Review.user_id == user_id)
+        .options(selectinload(Review.user))
+    )
+    return result.scalar_one_or_none()

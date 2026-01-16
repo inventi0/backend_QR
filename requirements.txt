@@ -7,7 +7,6 @@ pydantic~=2.11.5
 python-jose
 nh3
 jinja2
-asyncpg
 greenlet
 aiobotocore~=2.22.0
 fastapi_users
@@ -15,8 +14,11 @@ fastapi_users_db_sqlalchemy
 bs4
 psycopg2-binary
 passlib~=1.7.4
+bcrypt~=4.2.0
 pillow
 qrcode~=8.2
 starlette-admin
 starlette~=0.46.2
 itsdangerous
+slowapi~=0.1.9
+python-magic~=0.4.27
