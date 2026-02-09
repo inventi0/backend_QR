@@ -101,10 +101,10 @@ async def log_requests(request: Request, call_next):
 
     return response
 
-@app.get("/ping")
-async def ping():
-    app_logger.info("Ping endpoint вызван")
-    return {"status": "ok", "message": "Приложение поднялось!"}
+# @app.get("/ping")
+# async def ping():
+#     app_logger.info("Ping endpoint вызван")
+#     return {"status": "ok", "message": "Приложение поднялось!"}
 
 app.add_middleware(
     CORSMiddleware,
