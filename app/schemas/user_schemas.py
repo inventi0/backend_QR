@@ -10,6 +10,7 @@ class UserRead(BaseUser[int]):
     is_active: bool = True
     is_superuser: bool = False
     is_verified: bool = False
+    is_temporary_data: bool = False
 
     class Config:
         orm_mode = True
@@ -29,6 +30,7 @@ class UserCreate(BaseUserCreate):
     email: EmailStr
     username: str
     password: str
+    is_temporary_data: bool = False
 
 class UserUpdate(BaseUserUpdate):
     username: Optional[str] = None

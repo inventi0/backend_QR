@@ -11,6 +11,15 @@ class OrderItemCreateIn(BaseModel):
 
 class OrderCreateIn(BaseModel):
     items: List[OrderItemCreateIn] = Field(..., min_items=1)
+    
+    # Delivery info
+    contact_info: str
+    country: str
+    city: str
+    first_name: str
+    last_name: str
+    delivery_address: str
+    zip_code: str
 
 class OrderItemOut(BaseModel):
     id: int
@@ -28,6 +37,16 @@ class OrderOut(BaseModel):
     status: str
     user_id: int
     total_amount: conint(ge=0)
+    
+    # Delivery info
+    contact_info: Optional[str]
+    country: Optional[str]
+    city: Optional[str]
+    first_name: Optional[str]
+    last_name: Optional[str]
+    delivery_address: Optional[str]
+    zip_code: Optional[str]
+    
     items: List[OrderItemOut]
 
     class Config:

@@ -97,7 +97,12 @@ async def generate_random_user(
     # 2. Create User
     user_create = UserCreate(email=email, username=username, password=password)
     # We pass base_url so QR code is generated with correct link immediately
-    created_user = await user_manager.create(user_create, safe=False, base_url=base_url)
+    created_user = await user_manager.create(
+        user_create, 
+        safe=False, 
+        base_url=base_url,
+        is_temporary_data=True  # ✅ Flag as temporary
+    )
     
     # 3. Ensure QR and Editor exist (double check, though create() calls on_after_register)
     session = getattr(user_manager.user_db, "session", db)
