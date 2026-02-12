@@ -10,3 +10,5 @@ certs
 venv/*
 .idea/.env.backup
 logs/*.log
+.env.backup
+.env.example
