@@ -1,4 +1,7 @@
 import os
+import random
+import string
+import uuid
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import EmailStr, BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -6,12 +9,12 @@ from sqlalchemy import select
 from typing import Optional
 
 from app.database import get_db
-from app.routes.dependecies import current_user
+from app.routes.dependecies import current_user, current_superuser
 from app.s3.s3 import S3Client
 from app.schemas.user_schemas import UserRead, UserCreate
 from app.models.models import User, Editor, Template
 from app.helpers.users import set_user_avatar
-from app.helpers.codegen import set_editor_current_template
+from app.helpers.codegen import ensure_user_editor_and_qr, _editor_url
 from app.auth.manager import get_user_manager
 from fastapi_users import models as fu_models
 from app.error.handler import handle_error
@@ -57,6 +60,63 @@ async def register_with_avatar(
     await set_user_avatar(session, s3, created_user, avatar)
 
     return created_user
+    return created_user
+
+
+class GeneratedUserCredentials(BaseModel):
+    id: int
+    email: str
+    username: str
+    password: str
+    qr_image_url: Optional[str] = None
+    editor_url: Optional[str] = None
+
+
+@auth_custom_router.post("/generate-random", response_model=GeneratedUserCredentials)
+async def generate_random_user(
+    base_url: Optional[str] = None,
+    user_manager = Depends(get_user_manager),
+    superuser: User = Depends(current_superuser),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Генерация рандомного пользователя (для раздачи на бумажках).
+    Только для суперюзеров (админов).
+    Возвращает логин, пароль и ссылку на QR.
+    """
+    # 1. Generate random credentials
+    # Password: 8 chars (letters + digits)
+    alphabet = string.ascii_letters + string.digits
+    password = ''.join(random.choice(alphabet) for _ in range(8))
+    
+    # Username/Email: random UUID part
+    uid = uuid.uuid4().hex[:8]
+    username = f"user_{uid}"
+    email = f"{username}@example.com"
+    
+    # 2. Create User
+    user_create = UserCreate(email=email, username=username, password=password)
+    # We pass base_url so QR code is generated with correct link immediately
+    created_user = await user_manager.create(user_create, safe=False, base_url=base_url)
+    
+    # 3. Ensure QR and Editor exist (double check, though create() calls on_after_register)
+    session = getattr(user_manager.user_db, "session", db)
+    s3 = _s3_or_500()
+    
+    # We call this to get the QR object explicitly to return the link
+    # The QR should already be created by on_after_register
+    # But we need the object to return the link
+    editor, qr, target_url = await ensure_user_editor_and_qr(session, s3, created_user, base_url=base_url)
+    
+    return GeneratedUserCredentials(
+        id=created_user.id,
+        email=email,
+        username=username,
+        password=password,
+        qr_image_url=qr.link,
+        editor_url=_editor_url(editor.public_id, base_url)
+    )
+
 
 
 profile_router = APIRouter(prefix="/users", tags=["users"])
