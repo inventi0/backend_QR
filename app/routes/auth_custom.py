@@ -39,6 +39,7 @@ async def register_with_avatar(
     username: str = Form(...),
     password: str = Form(...),
     avatar: UploadFile = File(...),
+    base_url: Optional[str] = Form(None),
     user_manager = Depends(get_user_manager),
     db: AsyncSession = Depends(get_db),
 ):
@@ -48,7 +49,7 @@ async def register_with_avatar(
     затем загружает файл в S3 и проставляет user.img_url.
     """
     user_create = UserCreate(email=email, username=username, password=password)
-    created_user: fu_models.UP = await user_manager.create(user_create, safe=False)
+    created_user: fu_models.UP = await user_manager.create(user_create, safe=False, base_url=base_url)
 
     session = getattr(user_manager.user_db, "session", db)
 

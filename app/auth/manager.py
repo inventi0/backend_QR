@@ -31,6 +31,7 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
         user_create: schemas.UC,
         safe: bool = False,
         request: Optional[Request] = None,
+        base_url: Optional[str] = None,
     ) -> models.UP:
         await self.validate_password(user_create.password, user_create)
 
@@ -46,11 +47,11 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
         user_dict["role_id"] = 1  # ваш дефолт
 
         created_user = await self.user_db.create(user_dict)
-        await self.on_after_register(created_user, request)
+        await self.on_after_register(created_user, request, base_url)
 
         return created_user
 
-    async def on_after_register(self, user: User, request: Optional[Request] = None):
+    async def on_after_register(self, user: User, request: Optional[Request] = None, base_url: Optional[str] = None):
         """
         Инициализация «1 QR ↔ 1 Editor ↔ 1 User».
         - Гарантирует наличие Editor и QR.
@@ -74,7 +75,7 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
             bucket_name=os.getenv("S3_BUCKET_NAME"),
         )
 
-        await ensure_user_editor_and_qr(session, s3, user)
+        await ensure_user_editor_and_qr(session, s3, user, base_url=base_url)
 
         print(f"User {user.id} has registered (Editor+QR initialized).")
 
