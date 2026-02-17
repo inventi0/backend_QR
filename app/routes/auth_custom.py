@@ -14,7 +14,7 @@ from app.s3.s3 import S3Client
 from app.schemas.user_schemas import UserRead, UserCreate
 from app.models.models import User, Editor, Template
 from app.helpers.users import set_user_avatar
-from app.helpers.codegen import ensure_user_editor_and_qr, _editor_url
+from app.helpers.codegen import ensure_user_editor_and_qr, _editor_url, set_editor_current_template
 from app.auth.manager import get_user_manager
 from fastapi_users import models as fu_models
 from app.error.handler import handle_error
