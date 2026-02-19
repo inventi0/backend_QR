@@ -11,7 +11,7 @@ from typing import Optional
 from app.database import get_db
 from app.routes.dependecies import current_user, current_superuser
 from app.s3.s3 import S3Client
-from app.schemas.user_schemas import UserRead, UserCreate
+from app.schemas.user_schemas import UserRead, UserCreate, AdminUserDetailedResponse
 from app.models.models import User, Editor, Template
 from app.helpers.users import set_user_avatar
 from app.helpers.codegen import ensure_user_editor_and_qr, _editor_url, set_editor_current_template
@@ -138,6 +138,52 @@ async def update_avatar(
     s3 = _s3_or_500()
     await set_user_avatar(db, s3, user, avatar)
     return user
+
+
+@profile_router.get("/admin/detailed", response_model=list[AdminUserDetailedResponse])
+async def get_all_users_detailed(
+    skip: int = 0,
+    limit: int = 100,
+    user: User = Depends(current_superuser),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Эндпоинт для админки — отдает полные данные всех пользователей, 
+    с их шаблонами (templates) и ссылкой на QR-код (qr).
+    """
+    try:
+        from sqlalchemy.orm import selectinload
+        
+        result = await db.execute(
+            select(User)
+            .options(selectinload(User.templates))
+            .options(selectinload(User.qr))
+            .options(selectinload(User.editor))
+            .order_by(User.id.desc())
+            .offset(skip).limit(limit)
+        )
+        users = result.scalars().all()
+        
+        response_data = []
+        for u in users:
+            response_data.append(AdminUserDetailedResponse(
+                id=u.id,
+                email=u.email,
+                username=u.username,
+                is_active=u.is_active,
+                is_superuser=u.is_superuser,
+                is_temporary_data=u.is_temporary_data,
+                active_template_id=u.editor.current_template_id if u.editor else None,
+                templates=[
+                    {"id": t.id, "name": t.name, "thumb_url": t.thumb_url}
+                    for t in u.templates
+                ],
+                qr_link=u.qr.link if u.qr else None,
+            ))
+            
+        return response_data
+    except Exception as e:
+        raise handle_error(e, app_logger, "get_all_users_detailed")
 
 
 class SetActiveTemplateRequest(BaseModel):

@@ -7,6 +7,13 @@
   <link rel="stylesheet" href="{{ request.url_for('static', path='admin.css') }}">
 </head>
 <body class="admin-body">
+<!-- Liquid animated background orbs -->
+<div class="bg-orbs-container">
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-orb orb-3"></div>
+</div>
+
 {% if show_tabs %}
 <header class="admin-topbar">
   <div class="admin-brand"><span>Admin</span></div>

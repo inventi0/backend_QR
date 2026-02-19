@@ -9,37 +9,200 @@
     </div>
   </div>
   <div id="grid" class="panel">Загрузка…</div>
+  
+  <!-- ДЕТАЛИ -->
+  <div id="detail" class="panel" style="display:none; margin-top:12px"></div>
 </div>
 {% endblock %}
 {% block scripts %}
 <script>
+let USERS = [];
+let CURRENT_USER = null;
+
 async function loadUsers(){
   const me = await authFetch("/users/me");
   if(!me.ok){ clearToken(); return location.replace("/admin/login"); }
   const u = await me.json();
   if(!u.is_superuser){ clearToken(); return location.replace("/admin/login"); }
 
-  const r = await authFetch("/users");  // FastAPI Users: список доступен только суперюзеру
+  const r = await authFetch("/users/admin/detailed");
   const grid = document.getElementById("grid");
   if(!r.ok){ grid.innerHTML = `<div class="error">Ошибка: ${await r.text()}</div>`; return; }
   const data = await r.json();
+  USERS = data;
   if(!data.length){ grid.innerHTML = "<div class='muted'>Нет пользователей</div>"; return; }
-  const rows = data.map(u=>`
+  const rows = data.map(u=>{
+    const typeBadge = u.is_temporary_data ? `<span class="badge" style="background:var(--primary);color:#fff;padding:2px 6px;border-radius:4px;font-size:0.8em">Сгенерирован</span>` : "-";
+    const templatesStr = u.templates && u.templates.length 
+      ? u.templates.map(t => `<div style="font-size:0.9em;color:var(--text-muted)">${t.id}: ${t.name}</div>`).join("") 
+      : "-";
+    const qrLink = u.qr_link 
+      ? `<a href="${u.qr_link}" target="_blank" style="color:var(--primary)">Открыть</a>` 
+      : "-";
+
+    return `
     <tr>
       <td>${u.id}</td>
-      <td>${u.email}</td>
-      <td>${u.username ?? "-"}</td>
+      <td class="truncate-text truncate-text-td" title="${u.email}">${u.email}</td>
+      <td class="truncate-text truncate-text-td" title="${u.username ?? '-'}">${u.username ?? "-"}</td>
+      <td>${typeBadge}</td>
       <td>${u.is_active ? "active" : "blocked"}</td>
       <td>${u.is_superuser ? "yes" : "no"}</td>
+      <td>${templatesStr}</td>
+      <td>${qrLink}</td>
+      <td><button class="btn sm" data-act="open" data-id="${u.id}">Открыть</button></td>
     </tr>
-  `).join("");
+  `}).join("");
   grid.innerHTML = `
-    <table class="tbl">
-      <thead><tr><th>ID</th><th>Email</th><th>Имя</th><th>Статус</th><th>SU</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
+    <div class="table-responsive">
+      <table class="tbl">
+        <thead><tr><th>ID</th><th>Email</th><th>Имя</th><th>Тип</th><th>Статус</th><th>SU</th><th>Шаблоны</th><th>QR-код</th><th></th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
 }
-document.getElementById("reload").addEventListener("click", loadUsers);
+document.getElementById("reload").addEventListener("click", () => {
+  document.getElementById("detail").style.display = 'none';
+  loadUsers();
+});
+
+function renderUserDetail(u) {
+  CURRENT_USER = u;
+  const d = document.getElementById("detail");
+
+  const qrHtml = u.qr_link 
+    ? `<div style="text-align:center;"><img src="${u.qr_link}" style="max-width:200px; border-radius:8px; background:#fff; padding:8px;" alt="QR Code"><br><a href="${u.qr_link}" target="_blank" style="font-size:0.9em;color:var(--primary);">Скачать / Открыть</a></div>`
+    : `<div class="muted">QR-код не сгенерирован</div>`;
+
+  const templatesHtml = (u.templates || []).map(t => {
+    const isActive = t.id === u.active_template_id;
+    const border = isActive ? "2px solid var(--primary)" : "1px solid var(--border)";
+    const bg = t.thumb_url ? `url(${t.thumb_url}) center/cover` : "#1b2231";
+    return `
+      <div style="border:${border}; border-radius:8px; padding:8px; text-align:center; background:#141823;">
+        <div style="width:100%; height:80px; background:${bg}; border-radius:4px; margin-bottom:8px;"></div>
+        <div style="font-weight:bold; font-size:0.9em; margin-bottom:4px;">${t.name}</div>
+        ${isActive ? `<span class="badge" style="background:var(--primary);color:#fff;font-size:0.7em;">Активный</span>` : ""}
+      </div>
+    `;
+  }).join("");
+
+  d.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <h3 style="margin:0">Настройки пользователя #${u.id}</h3>
+      <button class="btn danger" onclick="document.getElementById('detail').style.display='none'">Закрыть</button>
+    </div>
+
+    <div style="display:grid; grid-template-columns: 1fr 250px; gap: 20px;">
+      
+      <!-- ФОРМА РЕДАКТИРОВАНИЯ -->
+      <div class="panel">
+        <h4 style="margin-top:0">Основная информация</h4>
+        <form id="editUserForm">
+          <div style="margin-bottom:10px">
+            <label>Email</label>
+            <input type="email" value="${u.email}" readonly style="opacity:0.7; cursor:not-allowed;">
+          </div>
+          <div style="margin-bottom:10px">
+            <label>Имя (Username)</label>
+            <input type="text" value="${u.username || ''}" readonly style="opacity:0.7; cursor:not-allowed;">
+          </div>
+          
+          <div style="display:flex; gap:16px; margin-bottom:15px; margin-top:15px;">
+            <label class="checkbox-label">
+              <input type="checkbox" id="euActive" ${u.is_active ? "checked" : ""}>
+              Активен
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="euSuperuser" ${u.is_superuser ? "checked" : ""}>
+              Суперюзер
+            </label>
+          </div>
+
+          <div style="margin-bottom:15px">
+            <label>Новый пароль (оставьте пустым, если не меняете)</label>
+            <input type="text" id="euPassword" placeholder="Введите новый пароль">
+          </div>
+
+          <button type="submit" class="btn primary">Сохранить изменения</button>
+          <div id="euError" class="error" style="display:none; margin-top:10px;"></div>
+        </form>
+      </div>
+
+      <!-- QR КОД -->
+      <div class="panel" style="display:flex; flex-direction:column; align-items:center; justify-content:center;">
+        <h4 style="margin-top:0; width:100%; text-align:left;">QR-код</h4>
+        ${qrHtml}
+      </div>
+    </div>
+
+    <!-- ШАБЛОНЫ -->
+    <div class="panel" style="margin-top:20px;">
+      <h4 style="margin-top:0">Шаблоны пользователя</h4>
+      <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px;">
+        ${templatesHtml || '<div class="muted">Нет шаблонов</div>'}
+      </div>
+    </div>
+  `;
+  d.style.display = 'block';
+  d.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  // Форма сохранения
+  document.getElementById("editUserForm").onsubmit = async (e) => {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
+    const err = document.getElementById("euError");
+    err.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = "Сохранение...";
+
+    const payload = {
+      is_active: document.getElementById("euActive").checked,
+      is_superuser: document.getElementById("euSuperuser").checked,
+    };
+    
+    const pass = document.getElementById("euPassword").value;
+    if (pass.trim()) {
+      payload.password = pass.trim();
+    }
+
+    try {
+      const resp = await authFetch(`/users/${u.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (!resp.ok) {
+        throw new Error(await resp.text());
+      }
+
+      // Обновляем список, чтобы стянуть актуальные данные
+      await loadUsers();
+      // Ищем юзера и перерисовываем деталь (чтобы сбросить инпут пароля)
+      const updatedU = USERS.find(x => x.id === u.id);
+      if(updatedU) renderUserDetail(updatedU);
+      
+    } catch(errObj) {
+      err.textContent = "Ошибка сохранения: " + errObj.message;
+      err.style.display = 'block';
+    } finally {
+      if(btn) {
+        btn.disabled = false;
+        btn.textContent = "Сохранить изменения";
+      }
+    }
+  };
+}
+
+document.getElementById("grid").addEventListener("click", (e) => {
+  const btn = e.target.closest('button[data-act="open"]');
+  if (!btn) return;
+  const id = parseInt(btn.dataset.id);
+  const u = USERS.find(x => x.id === id);
+  if (u) renderUserDetail(u);
+});
+
 loadUsers();
 </script>
 {% endblock %}

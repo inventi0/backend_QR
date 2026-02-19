@@ -59,19 +59,21 @@ async function loadReviews(){
     return `
     <tr>
       <td>${review.id}</td>
-      <td>${review.user.email} (ID: ${review.user.id})</td>
+      <td class="truncate-text truncate-text-td" title="${review.user.email} (ID: ${review.user.id})">${review.user.email} (ID: ${review.user.id})</td>
       <td>${"⭐".repeat(review.stars)}</td>
-      <td style="max-width: 300px; word-wrap: break-word;">${review.content}</td>
+      <td class="wrap-text" style="max-width: 300px;">${review.content}</td>
       <td>${review.is_flagged ? '<span style="color: #dc3545; font-weight: bold;">На модерации</span>' : '<span style="color: #28a745;">Одобрен</span>'}</td>
       <td style="min-width: 200px;">${actionButtons}</td>
     </tr>
   `}).join("");
 
   grid.innerHTML = `
-    <table class="tbl">
-      <thead><tr><th>ID</th><th>Пользователь</th><th>Оценка</th><th>Текст</th><th>Статус</th><th>Действия</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
+    <div class="table-responsive">
+      <table class="tbl">
+        <thead><tr><th>ID</th><th>Пользователь</th><th>Оценка</th><th>Текст</th><th>Статус</th><th>Действия</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
 }
 
 async function approveReview(id) {

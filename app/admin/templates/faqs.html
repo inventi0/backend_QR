@@ -44,16 +44,18 @@ async function loadFaqs(){
       <td>${f.id}</td>
       <td>${f.name}</td>
       <td>${f.email || "-"}</td>
-      <td style="max-width: 300px; word-wrap: break-word;">${f.question}</td>
-      <td style="min-width: 250px;">${answerContent}</td>
+      <td class="wrap-text" style="max-width: 300px;">${f.question}</td>
+      <td class="wrap-text" style="min-width: 250px;">${answerContent}</td>
     </tr>
   `}).join("");
 
   grid.innerHTML = `
-    <table class="tbl">
-      <thead><tr><th>ID</th><th>Имя</th><th>Email</th><th>Вопрос</th><th>Ответ</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
+    <div class="table-responsive">
+      <table class="tbl">
+        <thead><tr><th>ID</th><th>Имя</th><th>Email</th><th>Вопрос</th><th>Ответ</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
 }
 
 async function answerFaq(id) {
