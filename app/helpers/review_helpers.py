@@ -4,6 +4,7 @@ from sqlalchemy.orm import selectinload
 from fastapi import HTTPException
 from app.models.models import Review, User
 from app.schemas.review_schemas import ReviewCreate, ReviewUpdate
+from app.helpers.moderation import check_bad_words
 
 async def create_review_helper(
     db: AsyncSession,
@@ -14,13 +15,15 @@ async def create_review_helper(
     existing = await db.execute(
         select(Review).where(Review.user_id == user_id)
     )
-    if existing.scalar_one_or_none():
+    if existing.scalars().first():
         raise HTTPException(
             status_code=400, 
             detail={"error": "already_exists", "msg": "You already have a review. Please edit it instead."}
         )
     
-    review = Review(**review_in.dict(), user_id=user_id)
+    is_flagged = await check_bad_words(db, review_in.content)
+    
+    review = Review(**review_in.dict(), user_id=user_id, is_flagged=is_flagged)
     db.add(review)
     await db.commit()
     await db.refresh(review)
@@ -50,6 +53,21 @@ async def get_reviews_helper(
     """Получить список отзывов"""
     result = await db.execute(
         select(Review)
+        .where(Review.is_flagged == False)
+        .options(selectinload(Review.user))
+        .offset(skip)
+        .limit(limit)
+    )
+    return result.scalars().all()
+
+async def get_all_reviews_admin_helper(
+    db: AsyncSession,
+    skip: int = 0,
+    limit: int = 100,
+) -> list[Review]:
+    """Получить список ВСЕХ отзывов (для админки)"""
+    result = await db.execute(
+        select(Review)
         .options(selectinload(Review.user))
         .offset(skip)
         .limit(limit)
@@ -69,6 +87,9 @@ async def update_review_helper(
 
     for field, value in review_in.dict(exclude_unset=True).items():
         setattr(review, field, value)
+
+    # Re-check moderation status on update
+    review.is_flagged = await check_bad_words(db, review.content)
 
     db.add(review)
     await db.commit()
@@ -100,4 +121,4 @@ async def get_my_review_helper(
         .where(Review.user_id == user_id)
         .options(selectinload(Review.user))
     )
-    return result.scalar_one_or_none()
+    return result.scalars().first()

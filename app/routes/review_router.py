@@ -7,12 +7,13 @@ from app.helpers.review_helpers import (
     create_review_helper,
     get_review_helper,
     get_reviews_helper,
+    get_all_reviews_admin_helper,
     update_review_helper,
     delete_review_helper,
     get_my_review_helper,
 )
 from app.schemas.review_schemas import ReviewCreate, ReviewUpdate, ReviewRead
-from .dependecies import current_user
+from .dependecies import current_user, current_superuser
 
 from app.error.handler import handle_error
 from app.logging_config import app_logger
@@ -31,6 +32,39 @@ async def get_reviews(
         return await get_reviews_helper(db=db, skip=skip, limit=limit)
     except Exception as e:
         raise handle_error(e, app_logger, "get_reviews")
+
+
+@review_router.get("/admin/all", response_model=list[ReviewRead])
+async def get_all_reviews_admin(
+    skip: int = 0,
+    limit: int = 100,
+    user: User = Depends(current_superuser),
+    db: AsyncSession = Depends(get_db),
+):
+    """Получить список ВСЕХ отзывов (для админки)."""
+    try:
+        return await get_all_reviews_admin_helper(db=db, skip=skip, limit=limit)
+    except Exception as e:
+        raise handle_error(e, app_logger, "get_all_reviews_admin")
+
+
+@review_router.post("/{review_id}/approve", response_model=ReviewRead)
+async def approve_review(
+    review_id: int,
+    user: User = Depends(current_superuser),
+    db: AsyncSession = Depends(get_db),
+):
+    """Одобрить заблокированный отзыв (для админки)."""
+    try:
+        review = await get_review_helper(db=db, review_id=review_id)
+        # Update manually
+        review.is_flagged = False
+        db.add(review)
+        await db.commit()
+        await db.refresh(review)
+        return review
+    except Exception as e:
+        raise handle_error(e, app_logger, "approve_review")
 
 
 @review_router.get("/me", response_model=ReviewRead | None)
@@ -110,6 +144,14 @@ async def delete_review(
                 status_code=403,
                 detail={"error": "forbidden", "msg": "Not allowed to delete this review"},
             )
+            
+        # Запрет суперюзеру удалять не заблокированные отзывы
+        if user.is_superuser and review.user_id != user.id and not review.is_flagged:
+             raise HTTPException(
+                status_code=403,
+                detail={"error": "forbidden", "msg": "Admins cannot delete non-flagged reviews"},
+            )
+            
         return await delete_review_helper(db=db, review_id=review_id)
     except Exception as e:
         raise handle_error(e, app_logger, "delete_review")

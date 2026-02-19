@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% block title %}Отзывы{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-head">
+    <h2>Отзывы</h2>
+    <div class="actions">
+      <button id="reload" class="btn">Обновить</button>
+    </div>
+  </div>
+  <div id="grid" class="panel">Загрузка…</div>
+</div>
+
+<div class="card" style="margin-top: 20px;">
+  <div class="card-head">
+    <h2>Словарь авто-модерации</h2>
+  </div>
+  <div class="panel">
+    <div style="margin-bottom: 12px; font-size: 0.9em; color: #6c757d;">
+      <i>Подсказка: просто дважды кликните по любому слову в тексте отзыва выше, чтобы быстро скопировать его сюда.</i>
+    </div>
+    <div style="display: flex; gap: 8px; margin-bottom: 16px; max-width: 400px;">
+      <input type="text" id="new-bad-word" class="input" placeholder="Новое запрещенное слово...">
+      <button id="add-bad-word-btn" class="btn" style="background-color: #007bff;">Добавить слово</button>
+    </div>
+    <div id="bad-words-list" style="display: flex; flex-wrap: wrap; gap: 8px;">
+      Загрузка…
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+async function loadReviews(){
+  const r = await authFetch("/reviews/admin/all");
+  const grid = document.getElementById("grid");
+  if(!r.ok){ 
+    grid.innerHTML = `<div class="error">Ошибка: ${await r.text()}</div>`; 
+    return; 
+  }
+  const data = await r.json();
+  if(!data.length){ 
+    grid.innerHTML = "<div class='muted'>Нет отзывов</div>"; 
+    return; 
+  }
+  
+  const rows = data.map(review => {
+    let actionButtons = '';
+    
+    if (review.is_flagged) {
+      actionButtons = `
+        <button onclick="approveReview(${review.id})" class="btn" style="margin-right: 4px; background-color: #28a745;">Одобрить</button>
+        <button onclick="deleteReview(${review.id})" class="btn admin-danger">Удалить</button>
+      `;
+    } else {
+      actionButtons = `<span class="muted" style="font-size: 0.9em;">(Отзыв чист, удаление недоступно)</span>`;
+    }
+
+    return `
+    <tr>
+      <td>${review.id}</td>
+      <td>${review.user.email} (ID: ${review.user.id})</td>
+      <td>${"⭐".repeat(review.stars)}</td>
+      <td style="max-width: 300px; word-wrap: break-word;">${review.content}</td>
+      <td>${review.is_flagged ? '<span style="color: #dc3545; font-weight: bold;">На модерации</span>' : '<span style="color: #28a745;">Одобрен</span>'}</td>
+      <td style="min-width: 200px;">${actionButtons}</td>
+    </tr>
+  `}).join("");
+
+  grid.innerHTML = `
+    <table class="tbl">
+      <thead><tr><th>ID</th><th>Пользователь</th><th>Оценка</th><th>Текст</th><th>Статус</th><th>Действия</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+async function approveReview(id) {
+  if (!confirm("Вы уверены, что хотите вручную одобрить и опубликовать этот отзыв?")) return;
+  
+  const r = await authFetch(`/reviews/${id}/approve`, {
+    method: "POST"
+  });
+  
+  if (!r.ok) {
+    alert("Ошибка: " + await r.text());
+    return;
+  }
+  
+  loadReviews();
+}
+
+async function deleteReview(id) {
+  if (!confirm("Вы уверены, что хотите безвозвратно удалить этот заблокированный отзыв?")) return;
+  
+  const r = await authFetch(`/reviews/${id}`, {
+    method: "DELETE"
+  });
+  
+  if (!r.ok) {
+    alert("Ошибка при удалении: " + await r.text());
+    return;
+  }
+  
+  loadReviews();
+}
+
+// Функционал для словаря авто-модерации
+async function loadBadWords() {
+  const container = document.getElementById("bad-words-list");
+  const r = await authFetch("/moderation/bad-words");
+  
+  if (!r.ok) {
+    container.innerHTML = `<span style="color: red;">Ошибка загрузки слов</span>`;
+    return;
+  }
+  
+  const words = await r.json();
+  if (!words.length) {
+    container.innerHTML = `<span class="muted">Словарь пуст</span>`;
+    return;
+  }
+  
+  container.innerHTML = words.map(w => `
+    <span style="background-color: #f1f3f5; border: 1px solid #ced4da; border-radius: 4px; padding: 4px 8px; display: inline-flex; align-items: center; gap: 6px;">
+      ${w.word}
+      <button onclick="deleteBadWord(${w.id})" style="border: none; background: transparent; color: #dc3545; cursor: pointer; font-weight: bold; padding: 0;">&times;</button>
+    </span>
+  `).join("");
+}
+
+async function addBadWord() {
+  const input = document.getElementById("new-bad-word");
+  const word = input.value.trim();
+  
+  if (!word) return;
+  
+  input.disabled = true;
+  const btn = document.getElementById("add-bad-word-btn");
+  btn.disabled = true;
+  
+  const r = await authFetch("/moderation/bad-words", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ word })
+  });
+  
+  input.disabled = false;
+  btn.disabled = false;
+  
+  if (!r.ok) {
+    const errorData = await r.json().catch(() => ({}));
+    alert(errorData.detail || "Ошибка при добавлении слова");
+    return;
+  }
+  
+  input.value = "";
+  loadBadWords();
+}
+
+async function deleteBadWord(id) {
+  if (!confirm("Удалить это слово из фильтра?")) return;
+  
+  const r = await authFetch(`/moderation/bad-words/${id}`, {
+    method: "DELETE"
+  });
+  
+  if (!r.ok) {
+    alert("Ошибка при удалении слова");
+    return;
+  }
+  
+  loadBadWords();
+}
+
+document.getElementById("reload").addEventListener("click", loadReviews);
+document.getElementById("add-bad-word-btn").addEventListener("click", addBadWord);
+document.getElementById("new-bad-word").addEventListener("keypress", function(e) {
+  if (e.key === 'Enter') addBadWord();
+});
+
+// Слушаем двойной клик или выделение слова в таблице отзывов
+document.addEventListener("dblclick", function(e) {
+  if (e.target.closest("#grid table")) {
+    let text = window.getSelection().toString().trim();
+    // Убираем знаки препинания по краям, если они зацепились
+    text = text.replace(/^[.,/#!$%^&*;:{}=\-_`~()]+|[.,/#!$%^&*;:{}=\-_`~()]+$/g, "");
+    if (text && text.indexOf(" ") === -1 && text.length > 2) {
+      const input = document.getElementById("new-bad-word");
+      input.value = text.toLowerCase();
+      input.focus();
+    }
+  }
+});
+
+loadReviews();
+loadBadWords();
+</script>
+{% endblock %}

@@ -129,6 +129,7 @@ class Review(Base):
     id = Column(Integer, primary_key=True)
     stars = Column(Integer, nullable=False)
     content = Column(Text, nullable=False)
+    is_flagged = Column(Boolean, default=False, nullable=False)
 
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
@@ -201,3 +202,13 @@ class FAQ(Base):
     email = Column(String, nullable=False)
     question = Column(Text, nullable=False)
     answer = Column(Text)
+
+class BadWord(Base):
+    """
+    Слова, запрещённые к использованию в отзывах.
+    Используются для авто-модерации.
+    """
+    __tablename__ = "bad_words"
+
+    id = Column(Integer, primary_key=True)
+    word = Column(String, unique=True, nullable=False)

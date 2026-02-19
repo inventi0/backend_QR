@@ -10,9 +10,10 @@ from .logs_router import logs_router
 from .order_router import orders_router
 from .product_router import products_router
 from .qr_router import qr_router
+from .moderation_router import moderation_router
 from .dependecies import fastapi_users
 from app.auth.auth import auth_backend
-from app.helpers.helpers import to_start, to_shutdown, create_admin, create_product
+from app.helpers.helpers import to_start, to_shutdown, create_admin, create_product, create_mock_reviews
 from app.schemas.user_schemas import UserCreate, UserRead, UserOut, UserUpdate
 from .review_router import review_router
 
@@ -27,6 +28,7 @@ async def lifespan_func(app: FastAPI):
     await to_start()
     await create_admin()
     await create_product()
+    await create_mock_reviews()
     print("База готова")
     yield
     # await to_shutdown()
@@ -101,10 +103,7 @@ async def log_requests(request: Request, call_next):
 
     return response
 
-# @app.get("/ping")
-# async def ping():
-#     app_logger.info("Ping endpoint вызван")
-#     return {"status": "ok", "message": "Приложение поднялось!"}
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -138,5 +137,6 @@ app.include_router(templates_router)
 app.include_router(products_router)
 app.include_router(orders_router)
 app.include_router(logs_router)
+app.include_router(moderation_router)
 
 app.mount("/admin", admin_star)

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -43,6 +43,7 @@ async def get_all_faqs(
 async def answer_faq(
     faq_id: int,
     data: FAQAnswer,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(current_superuser),
 ):
@@ -54,6 +55,11 @@ async def answer_faq(
                 status_code=404,
                 detail={"error": "not_found", "msg": "FAQ not found"}
             )
+            
+        from app.helpers.email_helpers import send_faq_answer_email
+        if faq.email and faq.answer:
+            background_tasks.add_task(send_faq_answer_email, faq.email, faq.question, faq.answer)
+            
         return faq
     except Exception as e:
         raise handle_error(e, app_logger, "answer_faq")

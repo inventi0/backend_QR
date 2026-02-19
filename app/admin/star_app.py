@@ -24,6 +24,12 @@ async def users_page(request: Request):
 async def products_page(request: Request):
     return templates.TemplateResponse("products.html", {"request": request, "show_tabs": True})
 
+async def faqs_page(request: Request):
+    return templates.TemplateResponse("faqs.html", {"request": request, "show_tabs": True})
+
+async def reviews_page(request: Request):
+    return templates.TemplateResponse("reviews.html", {"request": request, "show_tabs": True})
+
 async def profile_page(request: Request):
     return templates.TemplateResponse("profile.html", {"request": request, "show_tabs": True})
 
@@ -40,6 +46,8 @@ def create_admin_starlette() -> Starlette:
             Route("/logs", endpoint=logs_page),
             Route("/users", endpoint=users_page),
             Route("/products", endpoint=products_page),
+            Route("/faqs", endpoint=faqs_page),
+            Route("/reviews", endpoint=reviews_page),
             Route("/profile", endpoint=profile_page),
             # ВАЖНО: имя 'static' нужно для url_for('static', path='...')
             Mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static"),
