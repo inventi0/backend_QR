@@ -20,6 +20,7 @@ class User(SQLAlchemyBaseUserTable[int], Base):
     is_active = Column(Boolean, default=True, nullable=False)
     is_superuser = Column(Boolean, default=False, nullable=False)
     is_verified = Column(Boolean, default=False, nullable=False)
+    is_temporary_data = Column(Boolean, default=False, nullable=False)
 
     orders = relationship(
         "Order",
@@ -87,6 +88,15 @@ class Order(Base):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     status = Column(String, default="pending", nullable=False)
     total_amount = Column(Integer)
+    
+    # Delivery info
+    contact_info = Column(String, nullable=True)
+    country = Column(String, nullable=True)
+    city = Column(String, nullable=True)
+    first_name = Column(String, nullable=True)
+    last_name = Column(String, nullable=True)
+    delivery_address = Column(String, nullable=True)
+    zip_code = Column(String, nullable=True)
 
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
@@ -119,6 +129,7 @@ class Review(Base):
     id = Column(Integer, primary_key=True)
     stars = Column(Integer, nullable=False)
     content = Column(Text, nullable=False)
+    is_flagged = Column(Boolean, default=False, nullable=False)
 
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
@@ -191,3 +202,13 @@ class FAQ(Base):
     email = Column(String, nullable=False)
     question = Column(Text, nullable=False)
     answer = Column(Text)
+
+class BadWord(Base):
+    """
+    Слова, запрещённые к использованию в отзывах.
+    Используются для авто-модерации.
+    """
+    __tablename__ = "bad_words"
+
+    id = Column(Integer, primary_key=True)
+    word = Column(String, unique=True, nullable=False)

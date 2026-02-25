@@ -7,6 +7,13 @@
   <link rel="stylesheet" href="{{ request.url_for('static', path='admin.css') }}">
 </head>
 <body class="admin-body">
+<!-- Liquid animated background orbs -->
+<div class="bg-orbs-container">
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-orb orb-3"></div>
+</div>
+
 {% if show_tabs %}
 <header class="admin-topbar">
   <div class="admin-brand"><span>Admin</span></div>
@@ -23,6 +30,8 @@
       <a class="admin-tab" data-path="/admin/orders"   href="/admin/orders">Заказы</a>
       <a class="admin-tab" data-path="/admin/users"    href="/admin/users">Пользователи</a>
       <a class="admin-tab" data-path="/admin/products" href="/admin/products">Продукты</a>
+      <a class="admin-tab" data-path="/admin/faqs"     href="/admin/faqs">Вопросы (FAQ)</a>
+      <a class="admin-tab" data-path="/admin/reviews"  href="/admin/reviews">Отзывы</a>
     </div>
     <div class="admin-group">
       <div class="admin-group-title">Данные</div>

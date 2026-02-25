@@ -9,7 +9,7 @@ from fastapi import HTTPException
 from passlib.context import CryptContext
 
 from app.database import Base, engine, async_session
-from app.models.models import User, Product
+from app.models.models import User, Product, Review
 from app.s3.s3 import S3Client
 from app.helpers.codegen import ensure_user_editor_and_qr
 
@@ -161,3 +161,32 @@ def is_admin(user: User) -> User:
     if not user.is_superuser:
         raise HTTPException(status_code=403, detail="Not authorized as admin")
     return user
+
+async def create_mock_reviews():
+    """Создаёт тестовые отзывы при запуске сервера для проверок авто-модерации"""
+    from app.helpers.moderation import check_bad_words
+    
+    async with async_session() as session:
+        # Check if reviews exist
+        result = await session.execute(select(Review))
+        existing_reviews = result.scalars().all()
+        
+        if not existing_reviews:
+            # Get admin user ID to attach reviews to
+            admin_req = await session.execute(select(User).where(User.is_superuser.is_(True)))
+            admin = admin_req.scalars().first()
+            if not admin:
+                return # Can't create reviews without a user
+                
+            mock_reviews = [
+                "Отличный сервис, мне всё очень понравилось! Буду рекомендовать друзьям.",
+                "Полный отстой, это просто кошмар и какой-то scam, верните деньги.",
+                "Неплохо, но интерфейс сложный. А так всё работает."
+            ]
+            
+            for content in mock_reviews:
+                is_flagged = await check_bad_words(session, content)
+                r = Review(stars=4, content=content, user_id=admin.id, is_flagged=is_flagged)
+                session.add(r)
+                
+            await session.commit()

@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Вопросы (FAQ){% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-head">
+    <h2>Вопросы (FAQ)</h2>
+    <div class="actions">
+      <button id="reload" class="btn">Обновить</button>
+    </div>
+  </div>
+  <div id="grid" class="panel">Загрузка…</div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+async function loadFaqs(){
+  const r = await authFetch("/faq/all");
+  const grid = document.getElementById("grid");
+  if(!r.ok){ 
+    grid.innerHTML = `<div class="error">Ошибка: ${await r.text()}</div>`; 
+    return; 
+  }
+  const data = await r.json();
+  if(!data.length){ 
+    grid.innerHTML = "<div class='muted'>Нет вопросов</div>"; 
+    return; 
+  }
+  
+  const rows = data.map(f => {
+    let answerContent = '';
+    if (f.answer) {
+      answerContent = `<div>${f.answer}</div>`;
+    } else {
+      answerContent = `
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="answer-${f.id}" placeholder="Ваш ответ..." style="flex: 1;" class="input">
+          <button onclick="answerFaq(${f.id})" class="btn">Ответить</button>
+        </div>
+      `;
+    }
+
+    return `
+    <tr>
+      <td>${f.id}</td>
+      <td>${f.name}</td>
+      <td>${f.email || "-"}</td>
+      <td class="wrap-text" style="max-width: 300px;">${f.question}</td>
+      <td class="wrap-text" style="min-width: 250px;">${answerContent}</td>
+    </tr>
+  `}).join("");
+
+  grid.innerHTML = `
+    <div class="table-responsive">
+      <table class="tbl">
+        <thead><tr><th>ID</th><th>Имя</th><th>Email</th><th>Вопрос</th><th>Ответ</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+async function answerFaq(id) {
+  const answerInput = document.getElementById(`answer-${id}`);
+  const answerText = answerInput.value.trim();
+  
+  if (!answerText) {
+    alert("Введите текст ответа");
+    return;
+  }
+  
+  answerInput.disabled = true;
+  
+  const r = await authFetch(`/faq/${id}/answer`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ answer: answerText })
+  });
+  
+  if (!r.ok) {
+    alert("Ошибка при сохранении ответа: " + await r.text());
+    answerInput.disabled = false;
+    return;
+  }
+  
+  loadFaqs();
+}
+
+document.getElementById("reload").addEventListener("click", loadFaqs);
+loadFaqs();
+</script>
+{% endblock %}

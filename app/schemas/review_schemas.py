@@ -16,6 +16,7 @@ class ReviewUpdate(BaseModel):
 class ReviewRead(ReviewBase):
     id: int
     user: UserOut
+    is_flagged: bool
 
     class Config:
         orm_mode = True

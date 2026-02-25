@@ -81,13 +81,19 @@ async def update_qr_set_new_template(
     user: User = Depends(current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    """
+    Установить активный шаблон. QR-код НЕ перегенерируется!
+    QR-код постоянный и всегда ведет на профиль: {base_url}/profile/{user_id}
+    """
     try:
-        qr, editor, tpl, editor_url = await set_editor_current_template(
+        qr, editor, tpl, profile_url = await set_editor_current_template(
             db=db,
             user=user,
             template_id=payload.template_id,
             s3=s3_client,
+            base_url=payload.base_url,
+            regenerate_qr=False,  # ✅ НЕ перегенерируем QR!
         )
-        return _as_qr_out(qr, editor, editor_url)
+        return _as_qr_out(qr, editor, profile_url)
     except Exception as e:
         raise handle_error(e, app_logger, "update_qr_set_new_template")

@@ -12,7 +12,7 @@
 
   <!-- ФИЛЬТРЫ -->
   <div class="panel" style="margin-bottom:12px">
-    <form id="filters" style="display:grid;grid-template-columns:1fr 1fr 1fr 120px;gap:10px;align-items:end">
+    <form id="filters" class="responsive-filters cols-4">
       <div>
         <label>Тип</label>
         <input type="text" id="fType" placeholder="Футболка">
@@ -228,16 +228,18 @@ function renderRows(items){
 
 function renderTable(items){
   grid.innerHTML = `
-    <table class="tbl">
-      <thead>
-        <tr>
-          <th>Фото</th><th>ID</th><th>Тип</th><th>Размер</th><th>Цвет</th>
-          <th style="text-align:right">Цена</th>
-          <th style="text-align:center;width:220px">Действия</th>
-        </tr>
-      </thead>
-      <tbody>${renderRows(items)}</tbody>
-    </table>
+    <div class="table-responsive">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Фото</th><th>ID</th><th>Тип</th><th>Размер</th><th>Цвет</th>
+            <th style="text-align:right">Цена</th>
+            <th style="text-align:center;width:220px">Действия</th>
+          </tr>
+        </thead>
+        <tbody>${renderRows(items)}</tbody>
+      </table>
+    </div>
   `;
 
   const tbody = grid.querySelector("tbody");

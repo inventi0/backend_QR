@@ -6,13 +6,14 @@
     <h2>Заказы</h2>
     <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap">
       <button id="reload" class="btn" type="button">Обновить</button>
+      <button id="btnGenerateUser" class="btn warning" type="button">Сгенерировать пользователя</button>
       <button id="toggleCreate" class="btn primary" type="button">Создать заказ</button>
     </div>
   </div>
 
   <!-- ФИЛЬТРЫ -->
   <div class="panel" style="margin-bottom:12px">
-    <div style="display:grid;grid-template-columns:1fr 280px 200px 140px;gap:10px;align-items:end">
+    <div class="responsive-filters cols-4">
       <div>
         <label>Поиск по email</label>
         <input type="text" id="fEmail" placeholder="user@example.com">
@@ -101,6 +102,30 @@
     <div id="pList" class="panel">Загрузка…</div>
   </div>
 </div>
+
+<!-- МОДАЛ ГЕНЕРАЦИИ ПОЛЬЗОВАТЕЛЯ -->
+<div id="genUserModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:#141823; border:1px solid #2a2f39; border-radius:12px; max-width:600px; width:95%; padding:16px;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:15px">
+      <h3 style="margin:0">Сгенерированные данные</h3>
+      <button class="btn danger" id="closeGenUser" type="button">Закрыть</button>
+    </div>
+    
+    <div id="genUserLoading" style="display:none; margin-bottom: 15px;">Загрузка... Может занять несколько секунд.</div>
+    <div id="genUserError" class="error" style="display:none; margin-bottom: 15px;"></div>
+    
+    <div id="genUserDetails" style="display:none;">
+      <div class="panel" style="margin-bottom: 15px;">
+        <p><strong>Email (Логин):</strong> <span id="genEmail" style="user-select: all; font-family: monospace; background: #000; padding: 2px 6px; border-radius: 4px;"></span></p>
+        <p><strong>Пароль:</strong> <span id="genPass" style="user-select: all; font-family: monospace; background: #000; padding: 2px 6px; border-radius: 4px;"></span></p>
+      </div>
+      <div class="panel">
+        <p><strong>Ссылка на QR код:</strong> <a id="genQrLink" href="#" target="_blank" style="color:var(--primary); word-break: break-all;"></a></p>
+        <p><strong>Ссылка на Редактор:</strong> <a id="genEditorLink" href="#" target="_blank" style="color:var(--primary); word-break: break-all;"></a></p>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -156,12 +181,13 @@ function renderTable(d){
   const g=$('#grid');
   if(!d.length){g.innerHTML="<div class='muted'>Нет заказов</div>";return;}
   g.innerHTML=`
-    <table class="tbl">
-      <thead><tr><th>ID</th><th>Пользователь</th><th>Статус</th><th>Сумма</th><th style="width:220px"></th></tr></thead>
+    <div class="table-responsive">
+      <table class="tbl">
+        <thead><tr><th>ID</th><th>Пользователь</th><th>Статус</th><th>Сумма</th><th style="width:220px"></th></tr></thead>
       <tbody>${d.map(o=>`
         <tr>
           <td>${o.id}</td>
-          <td>${fmt(o.user?.email??o.user_id)}</td>
+          <td class="truncate-text truncate-text-td" title="${fmt(o.user?.email??o.user_id)}">${fmt(o.user?.email??o.user_id)}</td>
           <td>${fmt(o.status)}</td>
           <td>${money(totalOf(o))} ₽</td>
           <td>
@@ -169,8 +195,9 @@ function renderTable(d){
             <button class="btn sm danger" data-act="del" data-id="${o.id}">Удалить</button>
           </td>
         </tr>`).join("")}
-      </tbody>
-    </table>`;
+        </tbody>
+      </table>
+    </div>`;
 }
 
 /* ====== DETAILS ====== */
@@ -223,15 +250,17 @@ function renderOrderDetail(o){
     </div>
 
     <div class="panel">
-      <table class="tbl">
-        <thead><tr>
-          <th>ID поз.</th><th>Товар</th><th>Размер</th><th>Цвет</th>
-          <th>Цена</th><th>Кол-во</th><th>Итого</th><th></th>
-        </tr></thead>
-        <tbody>
-          ${items || `<tr><td colspan="8" class="muted">Нет позиций</td></tr>`}
-        </tbody>
-      </table>
+      <div class="table-responsive">
+        <table class="tbl">
+          <thead><tr>
+            <th>ID поз.</th><th>Товар</th><th>Размер</th><th>Цвет</th>
+            <th>Цена</th><th>Кол-во</th><th>Итого</th><th></th>
+          </tr></thead>
+          <tbody>
+            ${items || `<tr><td colspan="8" class="muted">Нет позиций</td></tr>`}
+          </tbody>
+        </table>
+      </div>
     </div>
   `;
   d.style.display="block";
@@ -263,9 +292,9 @@ function renderProductsList(s){
     .map(p=>`<tr data-pid="${p.id}" class="p-row">
       <td>${p.id}</td><td>${fmt(p.type)}</td><td>${fmt(p.size)}</td><td>${fmt(p.color)}</td><td>${money(p.price||0)} ₽</td>
     </tr>`).join("");
-  list.innerHTML=`<table class="tbl">
+  list.innerHTML=`<div class="table-responsive"><table class="tbl">
     <thead><tr><th>ID</th><th>Тип</th><th>Размер</th><th>Цвет</th><th>Цена</th></tr></thead>
-    <tbody>${rows||"<tr><td colspan=5 class=muted>Нет товаров</td></tr>"}</tbody></table>`;
+    <tbody>${rows||"<tr><td colspan=5 class=muted>Нет товаров</td></tr>"}</tbody></table></div>`;
   $$('#pList .p-row').forEach(tr=>{
     tr.onclick=()=>{
       $$('#pList .p-row').forEach(x=>x.style.background="");
@@ -278,13 +307,13 @@ function renderProductsList(s){
 function renderCreateCart(){
   const box=$('#createCart');
   if(!CREATE_CART.length){box.innerHTML='<div class="muted">Корзина пуста</div>';return;}
-  box.innerHTML=`<table class="tbl"><thead>
+  box.innerHTML=`<div class="table-responsive"><table class="tbl"><thead>
     <tr><th>ID</th><th>Товар</th><th>Кол-во</th><th></th></tr></thead><tbody>
     ${CREATE_CART.map((it,i)=>`<tr>
       <td>${it.product_id}</td><td>${fmt(it.title)}</td><td>${it.quantity}</td>
       <td><button class="btn sm danger" data-act="rm-cart" data-idx="${i}">Удалить</button></td>
     </tr>`).join("")}
-  </tbody></table>`;
+  </tbody></table></div>`;
 }
 
 /* ====== TOP ACTIONS / FILTERS ====== */
@@ -392,6 +421,57 @@ $('#pAddSelected').onclick=async()=>{
     await openOrder(PICK_ORDER_ID); // обновим детали
     loadOrders();
   }
+};
+
+/* ====== USER GENERATOR ====== */
+$('#btnGenerateUser').onclick=async()=>{
+  $('#genUserModal').style.display='flex';
+  $('#genUserDetails').style.display='none';
+  $('#genUserError').style.display='none';
+  $('#genUserLoading').style.display='block';
+  
+  try {
+    const formData = new FormData();
+    formData.append('base_url', window.location.origin);
+    
+    // The endpoint generate-random requires application/x-www-form-urlencoded or multipart depending on the form
+    // Since we use BaseModel inside other places or Form, wait, the auth_custom generator:
+    // @auth_custom_router.post("/generate-random", response_model=GeneratedUserCredentials)
+    // async def generate_random_user(base_url: Optional[str] = None):
+    // Wait, it expects query param or json? Let's send as query param just in case
+    const r = await authFetch(`/auth/generate-random?base_url=${encodeURIComponent(window.location.origin)}`, {
+      method: 'POST'
+    });
+    
+    $('#genUserLoading').style.display='none';
+    
+    if(!r.ok){
+      $('#genUserError').textContent = `Ошибка: ${await r.text()}`;
+      $('#genUserError').style.display='block';
+      return;
+    }
+    
+    const data = await r.json();
+    $('#genEmail').textContent = data.email;
+    $('#genPass').textContent = data.password;
+    
+    $('#genQrLink').href = data.qr_image_url || '#';
+    $('#genQrLink').textContent = data.qr_image_url || 'N/A';
+    
+    $('#genEditorLink').href = data.editor_url || '#';
+    $('#genEditorLink').textContent = data.editor_url || 'N/A';
+    
+    $('#genUserDetails').style.display='block';
+    
+  } catch (e) {
+    $('#genUserLoading').style.display='none';
+    $('#genUserError').textContent = e.message;
+    $('#genUserError').style.display='block';
+  }
+};
+
+$('#closeGenUser').onclick=()=>{
+  $('#genUserModal').style.display='none';
 };
 
 /* ====== BOOT ====== */

@@ -20,3 +20,4 @@ class QRCodeOut(BaseModel):
 
 class QRSetTemplateIn(BaseModel):
     template_id: int
+    base_url: str | None = None  # Опционально: домен для QR-ссылки
