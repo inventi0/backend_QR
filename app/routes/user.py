@@ -36,7 +36,6 @@ async def lifespan_func(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan_func)
 
-# ✅ Добавление rate limiting
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
@@ -46,7 +45,6 @@ def _filter_sensitive_data(data: str) -> str:
     import json
     
     try:
-        # Попытка распарсить JSON
         parsed = json.loads(data)
         if isinstance(parsed, dict):
             # Фильтруем sensitive поля
@@ -119,11 +117,9 @@ app.include_router(
     tags=["auth"],
 )
 
-# ✅ Сначала кастомные роутеры (более специфичные пути)
 app.include_router(auth_custom_router)
 app.include_router(profile_router)
 
-# ✅ Затем FastAPI Users (общие пути)
 app.include_router(
     fastapi_users.get_users_router(UserRead, UserUpdate),
     prefix="/users",
