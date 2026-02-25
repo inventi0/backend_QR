@@ -20,6 +20,7 @@ qrcode~=8.2
 starlette-admin
 starlette~=0.46.2
 itsdangerous
+yookassa
 slowapi~=0.1.9
 python-magic~=0.4.27
 alembic
