@@ -1,0 +1,6 @@
+2026-02-24 21:54:08,977 - app - INFO - REQUEST GET http://testserver/admin/login | body=
+2026-02-24 21:54:08,983 - app - INFO - RESPONSE GET http://testserver/admin/login | status=200 | body=<streaming or empty>
+2026-02-24 22:05:49,743 - app - INFO - REQUEST GET http://testserver/admin/orders | body=
+2026-02-24 22:05:49,751 - app - INFO - RESPONSE GET http://testserver/admin/orders | status=200 | body=<streaming or empty>
+2026-02-24 22:06:16,466 - app - INFO - REQUEST GET http://testserver/admin/orders | body=
+2026-02-24 22:06:16,472 - app - INFO - RESPONSE GET http://testserver/admin/orders | status=200 | body=<streaming or empty>

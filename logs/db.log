@@ -1,0 +1,1719 @@
+2026-02-24 21:51:21,023 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-02-24 21:51:21,023 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("users")
+2026-02-24 21:51:21,024 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:51:21,024 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("users")
+2026-02-24 21:51:21,024 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:51:21,025 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("products")
+2026-02-24 21:51:21,025 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:51:21,025 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("products")
+2026-02-24 21:51:21,025 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:51:21,025 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("orders")
+2026-02-24 21:51:21,025 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:51:21,026 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("orders")
+2026-02-24 21:51:21,026 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:51:21,026 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("order_items")
+2026-02-24 21:51:21,026 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:51:21,026 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("order_items")
+2026-02-24 21:51:21,026 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:51:21,027 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("reviews")
+2026-02-24 21:51:21,027 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:51:21,027 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("reviews")
+2026-02-24 21:51:21,027 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:51:21,027 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("templates")
+2026-02-24 21:51:21,027 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:51:21,027 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("templates")
+2026-02-24 21:51:21,027 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:51:21,028 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("editors")
+2026-02-24 21:51:21,028 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:51:21,028 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("editors")
+2026-02-24 21:51:21,028 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:51:21,028 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("qrcodes")
+2026-02-24 21:51:21,028 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:51:21,028 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("qrcodes")
+2026-02-24 21:51:21,028 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:51:21,029 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("faqs")
+2026-02-24 21:51:21,029 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:51:21,029 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("faqs")
+2026-02-24 21:51:21,029 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:51:21,029 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("bad_words")
+2026-02-24 21:51:21,029 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:51:21,029 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("bad_words")
+2026-02-24 21:51:21,029 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:51:21,030 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE users (
+	id INTEGER NOT NULL, 
+	username VARCHAR NOT NULL, 
+	email VARCHAR NOT NULL, 
+	hashed_password VARCHAR NOT NULL, 
+	role_id INTEGER, 
+	img_url VARCHAR, 
+	is_active BOOLEAN NOT NULL, 
+	is_superuser BOOLEAN NOT NULL, 
+	is_verified BOOLEAN NOT NULL, 
+	is_temporary_data BOOLEAN NOT NULL, 
+	PRIMARY KEY (id), 
+	UNIQUE (email)
+)
+
+
+2026-02-24 21:51:21,030 - sqlalchemy.engine.Engine - INFO - [no key 0.00006s] ()
+2026-02-24 21:51:21,031 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE faqs (
+	id INTEGER NOT NULL, 
+	name VARCHAR NOT NULL, 
+	email VARCHAR NOT NULL, 
+	question TEXT NOT NULL, 
+	answer TEXT, 
+	PRIMARY KEY (id)
+)
+
+
+2026-02-24 21:51:21,031 - sqlalchemy.engine.Engine - INFO - [no key 0.00007s] ()
+2026-02-24 21:51:21,031 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE bad_words (
+	id INTEGER NOT NULL, 
+	word VARCHAR NOT NULL, 
+	PRIMARY KEY (id), 
+	UNIQUE (word)
+)
+
+
+2026-02-24 21:51:21,031 - sqlalchemy.engine.Engine - INFO - [no key 0.00005s] ()
+2026-02-24 21:51:21,032 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE orders (
+	id INTEGER NOT NULL, 
+	created_at DATETIME NOT NULL, 
+	status VARCHAR NOT NULL, 
+	total_amount INTEGER, 
+	contact_info VARCHAR, 
+	country VARCHAR, 
+	city VARCHAR, 
+	first_name VARCHAR, 
+	last_name VARCHAR, 
+	delivery_address VARCHAR, 
+	zip_code VARCHAR, 
+	user_id INTEGER NOT NULL, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE
+)
+
+
+2026-02-24 21:51:21,032 - sqlalchemy.engine.Engine - INFO - [no key 0.00005s] ()
+2026-02-24 21:51:21,032 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE reviews (
+	id INTEGER NOT NULL, 
+	stars INTEGER NOT NULL, 
+	content TEXT NOT NULL, 
+	is_flagged BOOLEAN NOT NULL, 
+	user_id INTEGER NOT NULL, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE
+)
+
+
+2026-02-24 21:51:21,032 - sqlalchemy.engine.Engine - INFO - [no key 0.00005s] ()
+2026-02-24 21:51:21,032 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE templates (
+	id INTEGER NOT NULL, 
+	created_at DATETIME NOT NULL, 
+	name VARCHAR NOT NULL, 
+	file_url VARCHAR NOT NULL, 
+	thumb_url VARCHAR, 
+	description TEXT, 
+	owner_user_id INTEGER, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(owner_user_id) REFERENCES users (id) ON DELETE SET NULL
+)
+
+
+2026-02-24 21:51:21,032 - sqlalchemy.engine.Engine - INFO - [no key 0.00005s] ()
+2026-02-24 21:51:21,033 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE editors (
+	id INTEGER NOT NULL, 
+	created_at DATETIME NOT NULL, 
+	public_id VARCHAR NOT NULL, 
+	current_template_id INTEGER, 
+	user_id INTEGER NOT NULL, 
+	PRIMARY KEY (id), 
+	UNIQUE (public_id), 
+	FOREIGN KEY(current_template_id) REFERENCES templates (id) ON DELETE SET NULL, 
+	UNIQUE (user_id), 
+	FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE
+)
+
+
+2026-02-24 21:51:21,033 - sqlalchemy.engine.Engine - INFO - [no key 0.00005s] ()
+2026-02-24 21:51:21,033 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE qrcodes (
+	id INTEGER NOT NULL, 
+	code VARCHAR NOT NULL, 
+	link VARCHAR, 
+	user_id INTEGER NOT NULL, 
+	editor_id INTEGER NOT NULL, 
+	PRIMARY KEY (id), 
+	UNIQUE (code), 
+	UNIQUE (user_id), 
+	FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE, 
+	UNIQUE (editor_id), 
+	FOREIGN KEY(editor_id) REFERENCES editors (id) ON DELETE CASCADE
+)
+
+
+2026-02-24 21:51:21,033 - sqlalchemy.engine.Engine - INFO - [no key 0.00004s] ()
+2026-02-24 21:51:21,034 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE products (
+	id INTEGER NOT NULL, 
+	type VARCHAR NOT NULL, 
+	size VARCHAR NOT NULL, 
+	color VARCHAR NOT NULL, 
+	description TEXT, 
+	img_url VARCHAR, 
+	price INTEGER, 
+	qr_id INTEGER, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(qr_id) REFERENCES qrcodes (id)
+)
+
+
+2026-02-24 21:51:21,034 - sqlalchemy.engine.Engine - INFO - [no key 0.00005s] ()
+2026-02-24 21:51:21,034 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE order_items (
+	id INTEGER NOT NULL, 
+	quantity INTEGER NOT NULL, 
+	amount INTEGER, 
+	order_id INTEGER NOT NULL, 
+	product_id INTEGER NOT NULL, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(order_id) REFERENCES orders (id) ON DELETE CASCADE, 
+	FOREIGN KEY(product_id) REFERENCES products (id) ON DELETE CASCADE
+)
+
+
+2026-02-24 21:51:21,034 - sqlalchemy.engine.Engine - INFO - [no key 0.00005s] ()
+2026-02-24 21:51:21,034 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-02-24 21:51:21,035 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-02-24 21:51:21,049 - sqlalchemy.engine.Engine - INFO - SELECT users.id, users.username, users.email, users.hashed_password, users.role_id, users.img_url, users.is_active, users.is_superuser, users.is_verified, users.is_temporary_data 
+FROM users 
+WHERE users.is_superuser IS 1
+2026-02-24 21:51:21,049 - sqlalchemy.engine.Engine - INFO - [generated in 0.00014s] ()
+2026-02-24 21:51:21,310 - sqlalchemy.engine.Engine - INFO - INSERT INTO users (username, email, hashed_password, role_id, img_url, is_active, is_superuser, is_verified, is_temporary_data) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+2026-02-24 21:51:21,311 - sqlalchemy.engine.Engine - INFO - [generated in 0.00020s] ('admin', 'admin@example.com', '$2b$12$nA4fAvNDDidvmCLhMUKvKed79PXPhicFWDxO9ZCsa9l7A4J.rXzoa', 1, None, 1, 1, 1, 0)
+2026-02-24 21:51:21,311 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-02-24 21:51:21,312 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-02-24 21:51:21,312 - sqlalchemy.engine.Engine - INFO - SELECT users.id, users.username, users.email, users.hashed_password, users.role_id, users.img_url, users.is_active, users.is_superuser, users.is_verified, users.is_temporary_data 
+FROM users 
+WHERE users.id = ?
+2026-02-24 21:51:21,312 - sqlalchemy.engine.Engine - INFO - [generated in 0.00007s] (1,)
+2026-02-24 21:51:21,313 - sqlalchemy.engine.Engine - INFO - SELECT templates.id AS templates_id, templates.created_at AS templates_created_at, templates.name AS templates_name, templates.file_url AS templates_file_url, templates.thumb_url AS templates_thumb_url, templates.description AS templates_description, templates.owner_user_id AS templates_owner_user_id 
+FROM templates 
+WHERE ? = templates.owner_user_id
+2026-02-24 21:51:21,313 - sqlalchemy.engine.Engine - INFO - [generated in 0.00007s] (1,)
+2026-02-24 21:51:21,314 - sqlalchemy.engine.Engine - INFO - SELECT editors.id AS editors_id, editors.created_at AS editors_created_at, editors.public_id AS editors_public_id, editors.current_template_id AS editors_current_template_id, editors.user_id AS editors_user_id 
+FROM editors 
+WHERE ? = editors.user_id
+2026-02-24 21:51:21,314 - sqlalchemy.engine.Engine - INFO - [generated in 0.00008s] (1,)
+2026-02-24 21:51:21,315 - sqlalchemy.engine.Engine - INFO - SELECT orders.id AS orders_id, orders.created_at AS orders_created_at, orders.status AS orders_status, orders.total_amount AS orders_total_amount, orders.contact_info AS orders_contact_info, orders.country AS orders_country, orders.city AS orders_city, orders.first_name AS orders_first_name, orders.last_name AS orders_last_name, orders.delivery_address AS orders_delivery_address, orders.zip_code AS orders_zip_code, orders.user_id AS orders_user_id 
+FROM orders 
+WHERE ? = orders.user_id
+2026-02-24 21:51:21,315 - sqlalchemy.engine.Engine - INFO - [generated in 0.00008s] (1,)
+2026-02-24 21:51:21,316 - sqlalchemy.engine.Engine - INFO - SELECT qrcodes.id AS qrcodes_id, qrcodes.code AS qrcodes_code, qrcodes.link AS qrcodes_link, qrcodes.user_id AS qrcodes_user_id, qrcodes.editor_id AS qrcodes_editor_id 
+FROM qrcodes 
+WHERE ? = qrcodes.user_id
+2026-02-24 21:51:21,316 - sqlalchemy.engine.Engine - INFO - [generated in 0.00007s] (1,)
+2026-02-24 21:51:21,317 - sqlalchemy.engine.Engine - INFO - SELECT reviews.id AS reviews_id, reviews.stars AS reviews_stars, reviews.content AS reviews_content, reviews.is_flagged AS reviews_is_flagged, reviews.user_id AS reviews_user_id 
+FROM reviews 
+WHERE ? = reviews.user_id
+2026-02-24 21:51:21,317 - sqlalchemy.engine.Engine - INFO - [generated in 0.00006s] (1,)
+2026-02-24 21:51:21,321 - sqlalchemy.engine.Engine - INFO - SELECT editors.id, editors.created_at, editors.public_id, editors.current_template_id, editors.user_id 
+FROM editors 
+WHERE editors.user_id = ?
+2026-02-24 21:51:21,321 - sqlalchemy.engine.Engine - INFO - [generated in 0.00011s] (1,)
+2026-02-24 21:51:21,322 - sqlalchemy.engine.Engine - INFO - INSERT INTO editors (created_at, public_id, current_template_id, user_id) VALUES (?, ?, ?, ?)
+2026-02-24 21:51:21,322 - sqlalchemy.engine.Engine - INFO - [generated in 0.00013s] ('2026-02-24 18:51:21.322352', 'ed-e84f5b9a09', None, 1)
+2026-02-24 21:51:21,323 - sqlalchemy.engine.Engine - INFO - SELECT qrcodes.id, qrcodes.code, qrcodes.link, qrcodes.user_id, qrcodes.editor_id 
+FROM qrcodes 
+WHERE qrcodes.user_id = ?
+2026-02-24 21:51:21,323 - sqlalchemy.engine.Engine - INFO - [generated in 0.00010s] (1,)
+2026-02-24 21:51:21,323 - sqlalchemy.engine.Engine - INFO - INSERT INTO qrcodes (code, link, user_id, editor_id) VALUES (?, ?, ?, ?)
+2026-02-24 21:51:21,323 - sqlalchemy.engine.Engine - INFO - [generated in 0.00012s] ('qr-ed-e84f5b9a09', None, 1, 1)
+2026-02-24 21:52:02,265 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-02-24 21:52:02,265 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("users")
+2026-02-24 21:52:02,265 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:52:02,266 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("users")
+2026-02-24 21:52:02,266 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:52:02,266 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("products")
+2026-02-24 21:52:02,266 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:52:02,266 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("products")
+2026-02-24 21:52:02,266 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:52:02,267 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("orders")
+2026-02-24 21:52:02,267 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:52:02,267 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("orders")
+2026-02-24 21:52:02,267 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:52:02,267 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("order_items")
+2026-02-24 21:52:02,267 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:52:02,267 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("order_items")
+2026-02-24 21:52:02,267 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:52:02,267 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("reviews")
+2026-02-24 21:52:02,267 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:52:02,268 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("reviews")
+2026-02-24 21:52:02,268 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:52:02,268 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("templates")
+2026-02-24 21:52:02,268 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:52:02,268 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("templates")
+2026-02-24 21:52:02,268 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:52:02,268 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("editors")
+2026-02-24 21:52:02,268 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:52:02,268 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("editors")
+2026-02-24 21:52:02,268 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:52:02,269 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("qrcodes")
+2026-02-24 21:52:02,269 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:52:02,269 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("qrcodes")
+2026-02-24 21:52:02,269 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:52:02,269 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("faqs")
+2026-02-24 21:52:02,269 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:52:02,269 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("faqs")
+2026-02-24 21:52:02,269 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:52:02,269 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("bad_words")
+2026-02-24 21:52:02,269 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:52:02,269 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("bad_words")
+2026-02-24 21:52:02,269 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:52:02,270 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE users (
+	id INTEGER NOT NULL, 
+	username VARCHAR NOT NULL, 
+	email VARCHAR NOT NULL, 
+	hashed_password VARCHAR NOT NULL, 
+	role_id INTEGER, 
+	img_url VARCHAR, 
+	is_active BOOLEAN NOT NULL, 
+	is_superuser BOOLEAN NOT NULL, 
+	is_verified BOOLEAN NOT NULL, 
+	is_temporary_data BOOLEAN NOT NULL, 
+	PRIMARY KEY (id), 
+	UNIQUE (email)
+)
+
+
+2026-02-24 21:52:02,270 - sqlalchemy.engine.Engine - INFO - [no key 0.00004s] ()
+2026-02-24 21:52:02,270 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE faqs (
+	id INTEGER NOT NULL, 
+	name VARCHAR NOT NULL, 
+	email VARCHAR NOT NULL, 
+	question TEXT NOT NULL, 
+	answer TEXT, 
+	PRIMARY KEY (id)
+)
+
+
+2026-02-24 21:52:02,270 - sqlalchemy.engine.Engine - INFO - [no key 0.00004s] ()
+2026-02-24 21:52:02,271 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE bad_words (
+	id INTEGER NOT NULL, 
+	word VARCHAR NOT NULL, 
+	PRIMARY KEY (id), 
+	UNIQUE (word)
+)
+
+
+2026-02-24 21:52:02,271 - sqlalchemy.engine.Engine - INFO - [no key 0.00003s] ()
+2026-02-24 21:52:02,271 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE orders (
+	id INTEGER NOT NULL, 
+	created_at DATETIME NOT NULL, 
+	status VARCHAR NOT NULL, 
+	total_amount INTEGER, 
+	contact_info VARCHAR, 
+	country VARCHAR, 
+	city VARCHAR, 
+	first_name VARCHAR, 
+	last_name VARCHAR, 
+	delivery_address VARCHAR, 
+	zip_code VARCHAR, 
+	user_id INTEGER NOT NULL, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE
+)
+
+
+2026-02-24 21:52:02,271 - sqlalchemy.engine.Engine - INFO - [no key 0.00004s] ()
+2026-02-24 21:52:02,271 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE reviews (
+	id INTEGER NOT NULL, 
+	stars INTEGER NOT NULL, 
+	content TEXT NOT NULL, 
+	is_flagged BOOLEAN NOT NULL, 
+	user_id INTEGER NOT NULL, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE
+)
+
+
+2026-02-24 21:52:02,271 - sqlalchemy.engine.Engine - INFO - [no key 0.00004s] ()
+2026-02-24 21:52:02,272 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE templates (
+	id INTEGER NOT NULL, 
+	created_at DATETIME NOT NULL, 
+	name VARCHAR NOT NULL, 
+	file_url VARCHAR NOT NULL, 
+	thumb_url VARCHAR, 
+	description TEXT, 
+	owner_user_id INTEGER, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(owner_user_id) REFERENCES users (id) ON DELETE SET NULL
+)
+
+
+2026-02-24 21:52:02,272 - sqlalchemy.engine.Engine - INFO - [no key 0.00003s] ()
+2026-02-24 21:52:02,272 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE editors (
+	id INTEGER NOT NULL, 
+	created_at DATETIME NOT NULL, 
+	public_id VARCHAR NOT NULL, 
+	current_template_id INTEGER, 
+	user_id INTEGER NOT NULL, 
+	PRIMARY KEY (id), 
+	UNIQUE (public_id), 
+	FOREIGN KEY(current_template_id) REFERENCES templates (id) ON DELETE SET NULL, 
+	UNIQUE (user_id), 
+	FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE
+)
+
+
+2026-02-24 21:52:02,272 - sqlalchemy.engine.Engine - INFO - [no key 0.00003s] ()
+2026-02-24 21:52:02,272 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE qrcodes (
+	id INTEGER NOT NULL, 
+	code VARCHAR NOT NULL, 
+	link VARCHAR, 
+	user_id INTEGER NOT NULL, 
+	editor_id INTEGER NOT NULL, 
+	PRIMARY KEY (id), 
+	UNIQUE (code), 
+	UNIQUE (user_id), 
+	FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE, 
+	UNIQUE (editor_id), 
+	FOREIGN KEY(editor_id) REFERENCES editors (id) ON DELETE CASCADE
+)
+
+
+2026-02-24 21:52:02,272 - sqlalchemy.engine.Engine - INFO - [no key 0.00004s] ()
+2026-02-24 21:52:02,272 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE products (
+	id INTEGER NOT NULL, 
+	type VARCHAR NOT NULL, 
+	size VARCHAR NOT NULL, 
+	color VARCHAR NOT NULL, 
+	description TEXT, 
+	img_url VARCHAR, 
+	price INTEGER, 
+	qr_id INTEGER, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(qr_id) REFERENCES qrcodes (id)
+)
+
+
+2026-02-24 21:52:02,272 - sqlalchemy.engine.Engine - INFO - [no key 0.00004s] ()
+2026-02-24 21:52:02,273 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE order_items (
+	id INTEGER NOT NULL, 
+	quantity INTEGER NOT NULL, 
+	amount INTEGER, 
+	order_id INTEGER NOT NULL, 
+	product_id INTEGER NOT NULL, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(order_id) REFERENCES orders (id) ON DELETE CASCADE, 
+	FOREIGN KEY(product_id) REFERENCES products (id) ON DELETE CASCADE
+)
+
+
+2026-02-24 21:52:02,273 - sqlalchemy.engine.Engine - INFO - [no key 0.00005s] ()
+2026-02-24 21:52:02,273 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-02-24 21:52:02,274 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-02-24 21:52:02,285 - sqlalchemy.engine.Engine - INFO - SELECT users.id, users.username, users.email, users.hashed_password, users.role_id, users.img_url, users.is_active, users.is_superuser, users.is_verified, users.is_temporary_data 
+FROM users 
+WHERE users.is_superuser IS 1
+2026-02-24 21:52:02,286 - sqlalchemy.engine.Engine - INFO - [generated in 0.00017s] ()
+2026-02-24 21:52:02,549 - sqlalchemy.engine.Engine - INFO - INSERT INTO users (username, email, hashed_password, role_id, img_url, is_active, is_superuser, is_verified, is_temporary_data) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+2026-02-24 21:52:02,549 - sqlalchemy.engine.Engine - INFO - [generated in 0.00020s] ('admin', 'admin@example.com', '$2b$12$xuzRcuVFWtz9sAqKjkonDeG4S0PDSREbMoWfIQzF3pXUtWFEOlQHa', 1, None, 1, 1, 1, 0)
+2026-02-24 21:52:02,549 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-02-24 21:52:02,550 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-02-24 21:52:02,551 - sqlalchemy.engine.Engine - INFO - SELECT users.id, users.username, users.email, users.hashed_password, users.role_id, users.img_url, users.is_active, users.is_superuser, users.is_verified, users.is_temporary_data 
+FROM users 
+WHERE users.id = ?
+2026-02-24 21:52:02,551 - sqlalchemy.engine.Engine - INFO - [generated in 0.00008s] (1,)
+2026-02-24 21:52:02,552 - sqlalchemy.engine.Engine - INFO - SELECT editors.id AS editors_id, editors.created_at AS editors_created_at, editors.public_id AS editors_public_id, editors.current_template_id AS editors_current_template_id, editors.user_id AS editors_user_id 
+FROM editors 
+WHERE ? = editors.user_id
+2026-02-24 21:52:02,552 - sqlalchemy.engine.Engine - INFO - [generated in 0.00013s] (1,)
+2026-02-24 21:52:02,553 - sqlalchemy.engine.Engine - INFO - SELECT orders.id AS orders_id, orders.created_at AS orders_created_at, orders.status AS orders_status, orders.total_amount AS orders_total_amount, orders.contact_info AS orders_contact_info, orders.country AS orders_country, orders.city AS orders_city, orders.first_name AS orders_first_name, orders.last_name AS orders_last_name, orders.delivery_address AS orders_delivery_address, orders.zip_code AS orders_zip_code, orders.user_id AS orders_user_id 
+FROM orders 
+WHERE ? = orders.user_id
+2026-02-24 21:52:02,553 - sqlalchemy.engine.Engine - INFO - [generated in 0.00013s] (1,)
+2026-02-24 21:52:02,554 - sqlalchemy.engine.Engine - INFO - SELECT qrcodes.id AS qrcodes_id, qrcodes.code AS qrcodes_code, qrcodes.link AS qrcodes_link, qrcodes.user_id AS qrcodes_user_id, qrcodes.editor_id AS qrcodes_editor_id 
+FROM qrcodes 
+WHERE ? = qrcodes.user_id
+2026-02-24 21:52:02,554 - sqlalchemy.engine.Engine - INFO - [generated in 0.00007s] (1,)
+2026-02-24 21:52:02,555 - sqlalchemy.engine.Engine - INFO - SELECT reviews.id AS reviews_id, reviews.stars AS reviews_stars, reviews.content AS reviews_content, reviews.is_flagged AS reviews_is_flagged, reviews.user_id AS reviews_user_id 
+FROM reviews 
+WHERE ? = reviews.user_id
+2026-02-24 21:52:02,555 - sqlalchemy.engine.Engine - INFO - [generated in 0.00008s] (1,)
+2026-02-24 21:52:02,556 - sqlalchemy.engine.Engine - INFO - SELECT templates.id AS templates_id, templates.created_at AS templates_created_at, templates.name AS templates_name, templates.file_url AS templates_file_url, templates.thumb_url AS templates_thumb_url, templates.description AS templates_description, templates.owner_user_id AS templates_owner_user_id 
+FROM templates 
+WHERE ? = templates.owner_user_id
+2026-02-24 21:52:02,556 - sqlalchemy.engine.Engine - INFO - [generated in 0.00007s] (1,)
+2026-02-24 21:52:02,560 - sqlalchemy.engine.Engine - INFO - SELECT editors.id, editors.created_at, editors.public_id, editors.current_template_id, editors.user_id 
+FROM editors 
+WHERE editors.user_id = ?
+2026-02-24 21:52:02,560 - sqlalchemy.engine.Engine - INFO - [generated in 0.00008s] (1,)
+2026-02-24 21:52:02,562 - sqlalchemy.engine.Engine - INFO - INSERT INTO editors (created_at, public_id, current_template_id, user_id) VALUES (?, ?, ?, ?)
+2026-02-24 21:52:02,562 - sqlalchemy.engine.Engine - INFO - [generated in 0.00010s] ('2026-02-24 18:52:02.562006', 'ed-c310528e39', None, 1)
+2026-02-24 21:52:02,562 - sqlalchemy.engine.Engine - INFO - SELECT qrcodes.id, qrcodes.code, qrcodes.link, qrcodes.user_id, qrcodes.editor_id 
+FROM qrcodes 
+WHERE qrcodes.user_id = ?
+2026-02-24 21:52:02,562 - sqlalchemy.engine.Engine - INFO - [generated in 0.00009s] (1,)
+2026-02-24 21:52:02,563 - sqlalchemy.engine.Engine - INFO - INSERT INTO qrcodes (code, link, user_id, editor_id) VALUES (?, ?, ?, ?)
+2026-02-24 21:52:02,563 - sqlalchemy.engine.Engine - INFO - [generated in 0.00007s] ('qr-ed-c310528e39', None, 1, 1)
+2026-02-24 21:52:04,558 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-02-24 21:52:04,986 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-02-24 21:54:07,736 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-02-24 21:54:07,737 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("users")
+2026-02-24 21:54:07,737 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:54:07,738 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("users")
+2026-02-24 21:54:07,738 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:54:07,738 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("products")
+2026-02-24 21:54:07,738 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:54:07,738 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("products")
+2026-02-24 21:54:07,738 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:54:07,739 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("orders")
+2026-02-24 21:54:07,739 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:54:07,739 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("orders")
+2026-02-24 21:54:07,739 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:54:07,739 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("order_items")
+2026-02-24 21:54:07,739 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:54:07,739 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("order_items")
+2026-02-24 21:54:07,739 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:54:07,740 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("reviews")
+2026-02-24 21:54:07,740 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:54:07,740 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("reviews")
+2026-02-24 21:54:07,740 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:54:07,740 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("templates")
+2026-02-24 21:54:07,740 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:54:07,740 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("templates")
+2026-02-24 21:54:07,740 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:54:07,740 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("editors")
+2026-02-24 21:54:07,740 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:54:07,741 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("editors")
+2026-02-24 21:54:07,741 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:54:07,741 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("qrcodes")
+2026-02-24 21:54:07,741 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:54:07,741 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("qrcodes")
+2026-02-24 21:54:07,741 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:54:07,741 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("faqs")
+2026-02-24 21:54:07,741 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:54:07,741 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("faqs")
+2026-02-24 21:54:07,741 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:54:07,741 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("bad_words")
+2026-02-24 21:54:07,742 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:54:07,742 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("bad_words")
+2026-02-24 21:54:07,742 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:54:07,742 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE users (
+	id INTEGER NOT NULL, 
+	username VARCHAR NOT NULL, 
+	email VARCHAR NOT NULL, 
+	hashed_password VARCHAR NOT NULL, 
+	role_id INTEGER, 
+	img_url VARCHAR, 
+	is_active BOOLEAN NOT NULL, 
+	is_superuser BOOLEAN NOT NULL, 
+	is_verified BOOLEAN NOT NULL, 
+	is_temporary_data BOOLEAN NOT NULL, 
+	PRIMARY KEY (id), 
+	UNIQUE (email)
+)
+
+
+2026-02-24 21:54:07,742 - sqlalchemy.engine.Engine - INFO - [no key 0.00007s] ()
+2026-02-24 21:54:07,743 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE faqs (
+	id INTEGER NOT NULL, 
+	name VARCHAR NOT NULL, 
+	email VARCHAR NOT NULL, 
+	question TEXT NOT NULL, 
+	answer TEXT, 
+	PRIMARY KEY (id)
+)
+
+
+2026-02-24 21:54:07,743 - sqlalchemy.engine.Engine - INFO - [no key 0.00004s] ()
+2026-02-24 21:54:07,743 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE bad_words (
+	id INTEGER NOT NULL, 
+	word VARCHAR NOT NULL, 
+	PRIMARY KEY (id), 
+	UNIQUE (word)
+)
+
+
+2026-02-24 21:54:07,743 - sqlalchemy.engine.Engine - INFO - [no key 0.00004s] ()
+2026-02-24 21:54:07,743 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE orders (
+	id INTEGER NOT NULL, 
+	created_at DATETIME NOT NULL, 
+	status VARCHAR NOT NULL, 
+	total_amount INTEGER, 
+	contact_info VARCHAR, 
+	country VARCHAR, 
+	city VARCHAR, 
+	first_name VARCHAR, 
+	last_name VARCHAR, 
+	delivery_address VARCHAR, 
+	zip_code VARCHAR, 
+	user_id INTEGER NOT NULL, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE
+)
+
+
+2026-02-24 21:54:07,744 - sqlalchemy.engine.Engine - INFO - [no key 0.00005s] ()
+2026-02-24 21:54:07,744 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE reviews (
+	id INTEGER NOT NULL, 
+	stars INTEGER NOT NULL, 
+	content TEXT NOT NULL, 
+	is_flagged BOOLEAN NOT NULL, 
+	user_id INTEGER NOT NULL, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE
+)
+
+
+2026-02-24 21:54:07,744 - sqlalchemy.engine.Engine - INFO - [no key 0.00004s] ()
+2026-02-24 21:54:07,744 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE templates (
+	id INTEGER NOT NULL, 
+	created_at DATETIME NOT NULL, 
+	name VARCHAR NOT NULL, 
+	file_url VARCHAR NOT NULL, 
+	thumb_url VARCHAR, 
+	description TEXT, 
+	owner_user_id INTEGER, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(owner_user_id) REFERENCES users (id) ON DELETE SET NULL
+)
+
+
+2026-02-24 21:54:07,744 - sqlalchemy.engine.Engine - INFO - [no key 0.00004s] ()
+2026-02-24 21:54:07,744 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE editors (
+	id INTEGER NOT NULL, 
+	created_at DATETIME NOT NULL, 
+	public_id VARCHAR NOT NULL, 
+	current_template_id INTEGER, 
+	user_id INTEGER NOT NULL, 
+	PRIMARY KEY (id), 
+	UNIQUE (public_id), 
+	FOREIGN KEY(current_template_id) REFERENCES templates (id) ON DELETE SET NULL, 
+	UNIQUE (user_id), 
+	FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE
+)
+
+
+2026-02-24 21:54:07,744 - sqlalchemy.engine.Engine - INFO - [no key 0.00005s] ()
+2026-02-24 21:54:07,745 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE qrcodes (
+	id INTEGER NOT NULL, 
+	code VARCHAR NOT NULL, 
+	link VARCHAR, 
+	user_id INTEGER NOT NULL, 
+	editor_id INTEGER NOT NULL, 
+	PRIMARY KEY (id), 
+	UNIQUE (code), 
+	UNIQUE (user_id), 
+	FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE, 
+	UNIQUE (editor_id), 
+	FOREIGN KEY(editor_id) REFERENCES editors (id) ON DELETE CASCADE
+)
+
+
+2026-02-24 21:54:07,745 - sqlalchemy.engine.Engine - INFO - [no key 0.00004s] ()
+2026-02-24 21:54:07,745 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE products (
+	id INTEGER NOT NULL, 
+	type VARCHAR NOT NULL, 
+	size VARCHAR NOT NULL, 
+	color VARCHAR NOT NULL, 
+	description TEXT, 
+	img_url VARCHAR, 
+	price INTEGER, 
+	qr_id INTEGER, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(qr_id) REFERENCES qrcodes (id)
+)
+
+
+2026-02-24 21:54:07,745 - sqlalchemy.engine.Engine - INFO - [no key 0.00004s] ()
+2026-02-24 21:54:07,745 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE order_items (
+	id INTEGER NOT NULL, 
+	quantity INTEGER NOT NULL, 
+	amount INTEGER, 
+	order_id INTEGER NOT NULL, 
+	product_id INTEGER NOT NULL, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(order_id) REFERENCES orders (id) ON DELETE CASCADE, 
+	FOREIGN KEY(product_id) REFERENCES products (id) ON DELETE CASCADE
+)
+
+
+2026-02-24 21:54:07,745 - sqlalchemy.engine.Engine - INFO - [no key 0.00006s] ()
+2026-02-24 21:54:07,746 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-02-24 21:54:07,747 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-02-24 21:54:07,759 - sqlalchemy.engine.Engine - INFO - SELECT users.id, users.username, users.email, users.hashed_password, users.role_id, users.img_url, users.is_active, users.is_superuser, users.is_verified, users.is_temporary_data 
+FROM users 
+WHERE users.is_superuser IS 1
+2026-02-24 21:54:07,759 - sqlalchemy.engine.Engine - INFO - [generated in 0.00016s] ()
+2026-02-24 21:54:08,079 - sqlalchemy.engine.Engine - INFO - INSERT INTO users (username, email, hashed_password, role_id, img_url, is_active, is_superuser, is_verified, is_temporary_data) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+2026-02-24 21:54:08,079 - sqlalchemy.engine.Engine - INFO - [generated in 0.00019s] ('admin', 'admin@example.com', '$2b$12$f/rkY4HOSU4JUWrBI7qiG.ti32a8eKKZdSGOVTppxfOFcnODeOaEO', 1, None, 1, 1, 1, 0)
+2026-02-24 21:54:08,080 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-02-24 21:54:08,080 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-02-24 21:54:08,081 - sqlalchemy.engine.Engine - INFO - SELECT users.id, users.username, users.email, users.hashed_password, users.role_id, users.img_url, users.is_active, users.is_superuser, users.is_verified, users.is_temporary_data 
+FROM users 
+WHERE users.id = ?
+2026-02-24 21:54:08,081 - sqlalchemy.engine.Engine - INFO - [generated in 0.00009s] (1,)
+2026-02-24 21:54:08,082 - sqlalchemy.engine.Engine - INFO - SELECT editors.id AS editors_id, editors.created_at AS editors_created_at, editors.public_id AS editors_public_id, editors.current_template_id AS editors_current_template_id, editors.user_id AS editors_user_id 
+FROM editors 
+WHERE ? = editors.user_id
+2026-02-24 21:54:08,082 - sqlalchemy.engine.Engine - INFO - [generated in 0.00010s] (1,)
+2026-02-24 21:54:08,083 - sqlalchemy.engine.Engine - INFO - SELECT orders.id AS orders_id, orders.created_at AS orders_created_at, orders.status AS orders_status, orders.total_amount AS orders_total_amount, orders.contact_info AS orders_contact_info, orders.country AS orders_country, orders.city AS orders_city, orders.first_name AS orders_first_name, orders.last_name AS orders_last_name, orders.delivery_address AS orders_delivery_address, orders.zip_code AS orders_zip_code, orders.user_id AS orders_user_id 
+FROM orders 
+WHERE ? = orders.user_id
+2026-02-24 21:54:08,083 - sqlalchemy.engine.Engine - INFO - [generated in 0.00010s] (1,)
+2026-02-24 21:54:08,084 - sqlalchemy.engine.Engine - INFO - SELECT qrcodes.id AS qrcodes_id, qrcodes.code AS qrcodes_code, qrcodes.link AS qrcodes_link, qrcodes.user_id AS qrcodes_user_id, qrcodes.editor_id AS qrcodes_editor_id 
+FROM qrcodes 
+WHERE ? = qrcodes.user_id
+2026-02-24 21:54:08,084 - sqlalchemy.engine.Engine - INFO - [generated in 0.00007s] (1,)
+2026-02-24 21:54:08,085 - sqlalchemy.engine.Engine - INFO - SELECT reviews.id AS reviews_id, reviews.stars AS reviews_stars, reviews.content AS reviews_content, reviews.is_flagged AS reviews_is_flagged, reviews.user_id AS reviews_user_id 
+FROM reviews 
+WHERE ? = reviews.user_id
+2026-02-24 21:54:08,085 - sqlalchemy.engine.Engine - INFO - [generated in 0.00008s] (1,)
+2026-02-24 21:54:08,086 - sqlalchemy.engine.Engine - INFO - SELECT templates.id AS templates_id, templates.created_at AS templates_created_at, templates.name AS templates_name, templates.file_url AS templates_file_url, templates.thumb_url AS templates_thumb_url, templates.description AS templates_description, templates.owner_user_id AS templates_owner_user_id 
+FROM templates 
+WHERE ? = templates.owner_user_id
+2026-02-24 21:54:08,086 - sqlalchemy.engine.Engine - INFO - [generated in 0.00007s] (1,)
+2026-02-24 21:54:08,090 - sqlalchemy.engine.Engine - INFO - SELECT editors.id, editors.created_at, editors.public_id, editors.current_template_id, editors.user_id 
+FROM editors 
+WHERE editors.user_id = ?
+2026-02-24 21:54:08,090 - sqlalchemy.engine.Engine - INFO - [generated in 0.00008s] (1,)
+2026-02-24 21:54:08,091 - sqlalchemy.engine.Engine - INFO - INSERT INTO editors (created_at, public_id, current_template_id, user_id) VALUES (?, ?, ?, ?)
+2026-02-24 21:54:08,091 - sqlalchemy.engine.Engine - INFO - [generated in 0.00009s] ('2026-02-24 18:54:08.091065', 'ed-22f25a3d7f', None, 1)
+2026-02-24 21:54:08,091 - sqlalchemy.engine.Engine - INFO - SELECT qrcodes.id, qrcodes.code, qrcodes.link, qrcodes.user_id, qrcodes.editor_id 
+FROM qrcodes 
+WHERE qrcodes.user_id = ?
+2026-02-24 21:54:08,091 - sqlalchemy.engine.Engine - INFO - [generated in 0.00006s] (1,)
+2026-02-24 21:54:08,092 - sqlalchemy.engine.Engine - INFO - INSERT INTO qrcodes (code, link, user_id, editor_id) VALUES (?, ?, ?, ?)
+2026-02-24 21:54:08,092 - sqlalchemy.engine.Engine - INFO - [generated in 0.00006s] ('qr-ed-22f25a3d7f', None, 1, 1)
+2026-02-24 21:54:08,932 - sqlalchemy.engine.Engine - INFO - UPDATE qrcodes SET link=? WHERE qrcodes.id = ?
+2026-02-24 21:54:08,932 - sqlalchemy.engine.Engine - INFO - [generated in 0.00028s] ('https://3e06ba26-08cc-45a0-99f2-455006fbe542.selstorage.ru/qr_codes/1_qr_20260224215408_fe2438d6.png', 1)
+2026-02-24 21:54:08,933 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-02-24 21:54:08,933 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-02-24 21:54:08,934 - sqlalchemy.engine.Engine - INFO - SELECT editors.id, editors.created_at, editors.public_id, editors.current_template_id, editors.user_id 
+FROM editors 
+WHERE editors.id = ?
+2026-02-24 21:54:08,934 - sqlalchemy.engine.Engine - INFO - [generated in 0.00026s] (1,)
+2026-02-24 21:54:08,937 - sqlalchemy.engine.Engine - INFO - SELECT qrcodes.id AS qrcodes_id, qrcodes.code AS qrcodes_code, qrcodes.link AS qrcodes_link, qrcodes.user_id AS qrcodes_user_id, qrcodes.editor_id AS qrcodes_editor_id 
+FROM qrcodes 
+WHERE ? = qrcodes.editor_id
+2026-02-24 21:54:08,937 - sqlalchemy.engine.Engine - INFO - [generated in 0.00023s] (1,)
+2026-02-24 21:54:08,938 - sqlalchemy.engine.Engine - INFO - SELECT qrcodes.id, qrcodes.code, qrcodes.link, qrcodes.user_id, qrcodes.editor_id 
+FROM qrcodes 
+WHERE qrcodes.id = ?
+2026-02-24 21:54:08,939 - sqlalchemy.engine.Engine - INFO - [generated in 0.00020s] (1,)
+2026-02-24 21:54:08,941 - sqlalchemy.engine.Engine - INFO - SELECT products.id AS products_id, products.type AS products_type, products.size AS products_size, products.color AS products_color, products.description AS products_description, products.img_url AS products_img_url, products.price AS products_price, products.qr_id AS products_qr_id 
+FROM products 
+WHERE ? = products.qr_id
+2026-02-24 21:54:08,941 - sqlalchemy.engine.Engine - INFO - [generated in 0.00018s] (1,)
+2026-02-24 21:54:08,942 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-02-24 21:54:08,943 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-02-24 21:54:08,944 - sqlalchemy.engine.Engine - INFO - SELECT products.id, products.type, products.size, products.color, products.description, products.img_url, products.price, products.qr_id 
+FROM products 
+WHERE products.type = ? AND products.size = ? AND products.color = ?
+2026-02-24 21:54:08,944 - sqlalchemy.engine.Engine - INFO - [generated in 0.00019s] ('Футболка', 'M', 'Белый')
+2026-02-24 21:54:08,946 - sqlalchemy.engine.Engine - INFO - INSERT INTO products (type, size, color, description, img_url, price, qr_id) VALUES (?, ?, ?, ?, ?, ?, ?)
+2026-02-24 21:54:08,946 - sqlalchemy.engine.Engine - INFO - [generated in 0.00018s] ('Футболка', 'M', 'Белый', 'Базовая белая футболка размера M', None, 1000, None)
+2026-02-24 21:54:08,955 - sqlalchemy.engine.Engine - INFO - UPDATE products SET img_url=? WHERE products.id = ?
+2026-02-24 21:54:08,955 - sqlalchemy.engine.Engine - INFO - [generated in 0.00021s] (None, 1)
+2026-02-24 21:54:08,956 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-02-24 21:54:08,956 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-02-24 21:54:08,957 - sqlalchemy.engine.Engine - INFO - SELECT products.id, products.type, products.size, products.color, products.description, products.img_url, products.price, products.qr_id 
+FROM products 
+WHERE products.id = ?
+2026-02-24 21:54:08,957 - sqlalchemy.engine.Engine - INFO - [generated in 0.00016s] (1,)
+2026-02-24 21:54:08,958 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-02-24 21:54:08,958 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-02-24 21:54:08,959 - sqlalchemy.engine.Engine - INFO - SELECT reviews.id, reviews.stars, reviews.content, reviews.is_flagged, reviews.user_id 
+FROM reviews
+2026-02-24 21:54:08,959 - sqlalchemy.engine.Engine - INFO - [generated in 0.00011s] ()
+2026-02-24 21:54:08,959 - sqlalchemy.engine.Engine - INFO - SELECT users.id, users.username, users.email, users.hashed_password, users.role_id, users.img_url, users.is_active, users.is_superuser, users.is_verified, users.is_temporary_data 
+FROM users 
+WHERE users.is_superuser IS 1
+2026-02-24 21:54:08,959 - sqlalchemy.engine.Engine - INFO - [cached since 1.201s ago] ()
+2026-02-24 21:54:08,961 - sqlalchemy.engine.Engine - INFO - SELECT editors.user_id AS editors_user_id, editors.id AS editors_id, editors.created_at AS editors_created_at, editors.public_id AS editors_public_id, editors.current_template_id AS editors_current_template_id 
+FROM editors 
+WHERE editors.user_id IN (?)
+2026-02-24 21:54:08,961 - sqlalchemy.engine.Engine - INFO - [generated in 0.00017s] (1,)
+2026-02-24 21:54:08,962 - sqlalchemy.engine.Engine - INFO - SELECT orders.user_id AS orders_user_id, orders.id AS orders_id, orders.created_at AS orders_created_at, orders.status AS orders_status, orders.total_amount AS orders_total_amount, orders.contact_info AS orders_contact_info, orders.country AS orders_country, orders.city AS orders_city, orders.first_name AS orders_first_name, orders.last_name AS orders_last_name, orders.delivery_address AS orders_delivery_address, orders.zip_code AS orders_zip_code 
+FROM orders 
+WHERE orders.user_id IN (?)
+2026-02-24 21:54:08,963 - sqlalchemy.engine.Engine - INFO - [generated in 0.00017s] (1,)
+2026-02-24 21:54:08,964 - sqlalchemy.engine.Engine - INFO - SELECT qrcodes.user_id AS qrcodes_user_id, qrcodes.id AS qrcodes_id, qrcodes.code AS qrcodes_code, qrcodes.link AS qrcodes_link, qrcodes.editor_id AS qrcodes_editor_id 
+FROM qrcodes 
+WHERE qrcodes.user_id IN (?)
+2026-02-24 21:54:08,964 - sqlalchemy.engine.Engine - INFO - [generated in 0.00013s] (1,)
+2026-02-24 21:54:08,965 - sqlalchemy.engine.Engine - INFO - SELECT reviews.user_id AS reviews_user_id, reviews.id AS reviews_id, reviews.stars AS reviews_stars, reviews.content AS reviews_content, reviews.is_flagged AS reviews_is_flagged 
+FROM reviews 
+WHERE reviews.user_id IN (?)
+2026-02-24 21:54:08,965 - sqlalchemy.engine.Engine - INFO - [generated in 0.00015s] (1,)
+2026-02-24 21:54:08,966 - sqlalchemy.engine.Engine - INFO - SELECT templates.owner_user_id AS templates_owner_user_id, templates.id AS templates_id, templates.created_at AS templates_created_at, templates.name AS templates_name, templates.file_url AS templates_file_url, templates.thumb_url AS templates_thumb_url, templates.description AS templates_description 
+FROM templates 
+WHERE templates.owner_user_id IN (?)
+2026-02-24 21:54:08,966 - sqlalchemy.engine.Engine - INFO - [generated in 0.00015s] (1,)
+2026-02-24 21:54:08,967 - sqlalchemy.engine.Engine - INFO - SELECT qrcodes.editor_id AS qrcodes_editor_id, qrcodes.id AS qrcodes_id, qrcodes.code AS qrcodes_code, qrcodes.link AS qrcodes_link, qrcodes.user_id AS qrcodes_user_id 
+FROM qrcodes 
+WHERE qrcodes.editor_id IN (?)
+2026-02-24 21:54:08,967 - sqlalchemy.engine.Engine - INFO - [generated in 0.00013s] (1,)
+2026-02-24 21:54:08,968 - sqlalchemy.engine.Engine - INFO - SELECT editors.id AS editors_id, editors.created_at AS editors_created_at, editors.public_id AS editors_public_id, editors.current_template_id AS editors_current_template_id, editors.user_id AS editors_user_id 
+FROM editors 
+WHERE editors.id IN (?)
+2026-02-24 21:54:08,968 - sqlalchemy.engine.Engine - INFO - [generated in 0.00015s] (1,)
+2026-02-24 21:54:08,969 - sqlalchemy.engine.Engine - INFO - SELECT products.qr_id AS products_qr_id, products.id AS products_id, products.type AS products_type, products.size AS products_size, products.color AS products_color, products.description AS products_description, products.img_url AS products_img_url, products.price AS products_price 
+FROM products 
+WHERE products.qr_id IN (?)
+2026-02-24 21:54:08,969 - sqlalchemy.engine.Engine - INFO - [generated in 0.00015s] (1,)
+2026-02-24 21:54:08,970 - sqlalchemy.engine.Engine - INFO - SELECT products.qr_id AS products_qr_id, products.id AS products_id, products.type AS products_type, products.size AS products_size, products.color AS products_color, products.description AS products_description, products.img_url AS products_img_url, products.price AS products_price 
+FROM products 
+WHERE products.qr_id IN (?)
+2026-02-24 21:54:08,970 - sqlalchemy.engine.Engine - INFO - [generated in 0.00013s] (1,)
+2026-02-24 21:54:08,971 - sqlalchemy.engine.Engine - INFO - SELECT bad_words.word 
+FROM bad_words
+2026-02-24 21:54:08,971 - sqlalchemy.engine.Engine - INFO - [generated in 0.00010s] ()
+2026-02-24 21:54:08,972 - sqlalchemy.engine.Engine - INFO - INSERT INTO reviews (stars, content, is_flagged, user_id) VALUES (?, ?, ?, ?)
+2026-02-24 21:54:08,972 - sqlalchemy.engine.Engine - INFO - [generated in 0.00012s] (4, 'Отличный сервис, мне всё очень понравилось! Буду рекомендовать друзьям.', 0, 1)
+2026-02-24 21:54:08,973 - sqlalchemy.engine.Engine - INFO - SELECT bad_words.word 
+FROM bad_words
+2026-02-24 21:54:08,973 - sqlalchemy.engine.Engine - INFO - [cached since 0.001623s ago] ()
+2026-02-24 21:54:08,975 - sqlalchemy.engine.Engine - INFO - INSERT INTO reviews (stars, content, is_flagged, user_id) VALUES (?, ?, ?, ?)
+2026-02-24 21:54:08,975 - sqlalchemy.engine.Engine - INFO - [cached since 0.002725s ago] (4, 'Полный отстой, это просто кошмар и какой-то scam, верните деньги.', 0, 1)
+2026-02-24 21:54:08,975 - sqlalchemy.engine.Engine - INFO - SELECT bad_words.word 
+FROM bad_words
+2026-02-24 21:54:08,975 - sqlalchemy.engine.Engine - INFO - [cached since 0.004125s ago] ()
+2026-02-24 21:54:08,976 - sqlalchemy.engine.Engine - INFO - INSERT INTO reviews (stars, content, is_flagged, user_id) VALUES (?, ?, ?, ?)
+2026-02-24 21:54:08,976 - sqlalchemy.engine.Engine - INFO - [cached since 0.00367s ago] (4, 'Неплохо, но интерфейс сложный. А так всё работает.', 0, 1)
+2026-02-24 21:54:08,976 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-02-24 21:56:18,249 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-02-24 21:56:18,250 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("users")
+2026-02-24 21:56:18,250 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:56:18,250 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("users")
+2026-02-24 21:56:18,250 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:56:18,251 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("products")
+2026-02-24 21:56:18,251 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:56:18,251 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("products")
+2026-02-24 21:56:18,251 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:56:18,251 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("orders")
+2026-02-24 21:56:18,251 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:56:18,251 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("orders")
+2026-02-24 21:56:18,251 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:56:18,252 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("order_items")
+2026-02-24 21:56:18,252 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:56:18,252 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("order_items")
+2026-02-24 21:56:18,252 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:56:18,252 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("reviews")
+2026-02-24 21:56:18,252 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:56:18,252 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("reviews")
+2026-02-24 21:56:18,252 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:56:18,252 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("templates")
+2026-02-24 21:56:18,252 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:56:18,253 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("templates")
+2026-02-24 21:56:18,253 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:56:18,253 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("editors")
+2026-02-24 21:56:18,253 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:56:18,253 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("editors")
+2026-02-24 21:56:18,253 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:56:18,253 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("qrcodes")
+2026-02-24 21:56:18,253 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:56:18,254 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("qrcodes")
+2026-02-24 21:56:18,254 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:56:18,254 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("faqs")
+2026-02-24 21:56:18,254 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:56:18,254 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("faqs")
+2026-02-24 21:56:18,254 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:56:18,254 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("bad_words")
+2026-02-24 21:56:18,254 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:56:18,254 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("bad_words")
+2026-02-24 21:56:18,254 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 21:56:18,255 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE users (
+	id INTEGER NOT NULL, 
+	username VARCHAR NOT NULL, 
+	email VARCHAR NOT NULL, 
+	hashed_password VARCHAR NOT NULL, 
+	role_id INTEGER, 
+	img_url VARCHAR, 
+	is_active BOOLEAN NOT NULL, 
+	is_superuser BOOLEAN NOT NULL, 
+	is_verified BOOLEAN NOT NULL, 
+	is_temporary_data BOOLEAN NOT NULL, 
+	PRIMARY KEY (id), 
+	UNIQUE (email)
+)
+
+
+2026-02-24 21:56:18,255 - sqlalchemy.engine.Engine - INFO - [no key 0.00004s] ()
+2026-02-24 21:56:18,255 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE faqs (
+	id INTEGER NOT NULL, 
+	name VARCHAR NOT NULL, 
+	email VARCHAR NOT NULL, 
+	question TEXT NOT NULL, 
+	answer TEXT, 
+	PRIMARY KEY (id)
+)
+
+
+2026-02-24 21:56:18,255 - sqlalchemy.engine.Engine - INFO - [no key 0.00004s] ()
+2026-02-24 21:56:18,256 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE bad_words (
+	id INTEGER NOT NULL, 
+	word VARCHAR NOT NULL, 
+	PRIMARY KEY (id), 
+	UNIQUE (word)
+)
+
+
+2026-02-24 21:56:18,256 - sqlalchemy.engine.Engine - INFO - [no key 0.00003s] ()
+2026-02-24 21:56:18,256 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE orders (
+	id INTEGER NOT NULL, 
+	created_at DATETIME NOT NULL, 
+	status VARCHAR NOT NULL, 
+	total_amount INTEGER, 
+	contact_info VARCHAR, 
+	country VARCHAR, 
+	city VARCHAR, 
+	first_name VARCHAR, 
+	last_name VARCHAR, 
+	delivery_address VARCHAR, 
+	zip_code VARCHAR, 
+	user_id INTEGER NOT NULL, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE
+)
+
+
+2026-02-24 21:56:18,256 - sqlalchemy.engine.Engine - INFO - [no key 0.00004s] ()
+2026-02-24 21:56:18,256 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE reviews (
+	id INTEGER NOT NULL, 
+	stars INTEGER NOT NULL, 
+	content TEXT NOT NULL, 
+	is_flagged BOOLEAN NOT NULL, 
+	user_id INTEGER NOT NULL, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE
+)
+
+
+2026-02-24 21:56:18,256 - sqlalchemy.engine.Engine - INFO - [no key 0.00003s] ()
+2026-02-24 21:56:18,256 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE templates (
+	id INTEGER NOT NULL, 
+	created_at DATETIME NOT NULL, 
+	name VARCHAR NOT NULL, 
+	file_url VARCHAR NOT NULL, 
+	thumb_url VARCHAR, 
+	description TEXT, 
+	owner_user_id INTEGER, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(owner_user_id) REFERENCES users (id) ON DELETE SET NULL
+)
+
+
+2026-02-24 21:56:18,256 - sqlalchemy.engine.Engine - INFO - [no key 0.00004s] ()
+2026-02-24 21:56:18,257 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE editors (
+	id INTEGER NOT NULL, 
+	created_at DATETIME NOT NULL, 
+	public_id VARCHAR NOT NULL, 
+	current_template_id INTEGER, 
+	user_id INTEGER NOT NULL, 
+	PRIMARY KEY (id), 
+	UNIQUE (public_id), 
+	FOREIGN KEY(current_template_id) REFERENCES templates (id) ON DELETE SET NULL, 
+	UNIQUE (user_id), 
+	FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE
+)
+
+
+2026-02-24 21:56:18,257 - sqlalchemy.engine.Engine - INFO - [no key 0.00003s] ()
+2026-02-24 21:56:18,257 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE qrcodes (
+	id INTEGER NOT NULL, 
+	code VARCHAR NOT NULL, 
+	link VARCHAR, 
+	user_id INTEGER NOT NULL, 
+	editor_id INTEGER NOT NULL, 
+	PRIMARY KEY (id), 
+	UNIQUE (code), 
+	UNIQUE (user_id), 
+	FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE, 
+	UNIQUE (editor_id), 
+	FOREIGN KEY(editor_id) REFERENCES editors (id) ON DELETE CASCADE
+)
+
+
+2026-02-24 21:56:18,257 - sqlalchemy.engine.Engine - INFO - [no key 0.00005s] ()
+2026-02-24 21:56:18,257 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE products (
+	id INTEGER NOT NULL, 
+	type VARCHAR NOT NULL, 
+	size VARCHAR NOT NULL, 
+	color VARCHAR NOT NULL, 
+	description TEXT, 
+	img_url VARCHAR, 
+	price INTEGER, 
+	qr_id INTEGER, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(qr_id) REFERENCES qrcodes (id)
+)
+
+
+2026-02-24 21:56:18,257 - sqlalchemy.engine.Engine - INFO - [no key 0.00004s] ()
+2026-02-24 21:56:18,258 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE order_items (
+	id INTEGER NOT NULL, 
+	quantity INTEGER NOT NULL, 
+	amount INTEGER, 
+	order_id INTEGER NOT NULL, 
+	product_id INTEGER NOT NULL, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(order_id) REFERENCES orders (id) ON DELETE CASCADE, 
+	FOREIGN KEY(product_id) REFERENCES products (id) ON DELETE CASCADE
+)
+
+
+2026-02-24 21:56:18,258 - sqlalchemy.engine.Engine - INFO - [no key 0.00004s] ()
+2026-02-24 21:56:18,258 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-02-24 21:56:18,259 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-02-24 21:56:18,270 - sqlalchemy.engine.Engine - INFO - SELECT users.id, users.username, users.email, users.hashed_password, users.role_id, users.img_url, users.is_active, users.is_superuser, users.is_verified, users.is_temporary_data 
+FROM users 
+WHERE users.is_superuser IS 1
+2026-02-24 21:56:18,270 - sqlalchemy.engine.Engine - INFO - [generated in 0.00017s] ()
+2026-02-24 21:56:18,543 - sqlalchemy.engine.Engine - INFO - INSERT INTO users (username, email, hashed_password, role_id, img_url, is_active, is_superuser, is_verified, is_temporary_data) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+2026-02-24 21:56:18,543 - sqlalchemy.engine.Engine - INFO - [generated in 0.00019s] ('admin', 'admin@example.com', '$2b$12$YUVpa24.lWWDo6phovziZ.AVOcMOvLJudWBzXY2QSTm5e3Lz22LZi', 1, None, 1, 1, 1, 0)
+2026-02-24 21:56:18,543 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-02-24 21:56:18,544 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-02-24 21:56:18,544 - sqlalchemy.engine.Engine - INFO - SELECT users.id, users.username, users.email, users.hashed_password, users.role_id, users.img_url, users.is_active, users.is_superuser, users.is_verified, users.is_temporary_data 
+FROM users 
+WHERE users.id = ?
+2026-02-24 21:56:18,544 - sqlalchemy.engine.Engine - INFO - [generated in 0.00006s] (1,)
+2026-02-24 21:56:18,546 - sqlalchemy.engine.Engine - INFO - SELECT editors.id AS editors_id, editors.created_at AS editors_created_at, editors.public_id AS editors_public_id, editors.current_template_id AS editors_current_template_id, editors.user_id AS editors_user_id 
+FROM editors 
+WHERE ? = editors.user_id
+2026-02-24 21:56:18,546 - sqlalchemy.engine.Engine - INFO - [generated in 0.00009s] (1,)
+2026-02-24 21:56:18,547 - sqlalchemy.engine.Engine - INFO - SELECT orders.id AS orders_id, orders.created_at AS orders_created_at, orders.status AS orders_status, orders.total_amount AS orders_total_amount, orders.contact_info AS orders_contact_info, orders.country AS orders_country, orders.city AS orders_city, orders.first_name AS orders_first_name, orders.last_name AS orders_last_name, orders.delivery_address AS orders_delivery_address, orders.zip_code AS orders_zip_code, orders.user_id AS orders_user_id 
+FROM orders 
+WHERE ? = orders.user_id
+2026-02-24 21:56:18,547 - sqlalchemy.engine.Engine - INFO - [generated in 0.00008s] (1,)
+2026-02-24 21:56:18,548 - sqlalchemy.engine.Engine - INFO - SELECT qrcodes.id AS qrcodes_id, qrcodes.code AS qrcodes_code, qrcodes.link AS qrcodes_link, qrcodes.user_id AS qrcodes_user_id, qrcodes.editor_id AS qrcodes_editor_id 
+FROM qrcodes 
+WHERE ? = qrcodes.user_id
+2026-02-24 21:56:18,548 - sqlalchemy.engine.Engine - INFO - [generated in 0.00007s] (1,)
+2026-02-24 21:56:18,549 - sqlalchemy.engine.Engine - INFO - SELECT reviews.id AS reviews_id, reviews.stars AS reviews_stars, reviews.content AS reviews_content, reviews.is_flagged AS reviews_is_flagged, reviews.user_id AS reviews_user_id 
+FROM reviews 
+WHERE ? = reviews.user_id
+2026-02-24 21:56:18,549 - sqlalchemy.engine.Engine - INFO - [generated in 0.00008s] (1,)
+2026-02-24 21:56:18,549 - sqlalchemy.engine.Engine - INFO - SELECT templates.id AS templates_id, templates.created_at AS templates_created_at, templates.name AS templates_name, templates.file_url AS templates_file_url, templates.thumb_url AS templates_thumb_url, templates.description AS templates_description, templates.owner_user_id AS templates_owner_user_id 
+FROM templates 
+WHERE ? = templates.owner_user_id
+2026-02-24 21:56:18,550 - sqlalchemy.engine.Engine - INFO - [generated in 0.00006s] (1,)
+2026-02-24 21:56:18,554 - sqlalchemy.engine.Engine - INFO - SELECT editors.id, editors.created_at, editors.public_id, editors.current_template_id, editors.user_id 
+FROM editors 
+WHERE editors.user_id = ?
+2026-02-24 21:56:18,554 - sqlalchemy.engine.Engine - INFO - [generated in 0.00011s] (1,)
+2026-02-24 21:56:18,555 - sqlalchemy.engine.Engine - INFO - INSERT INTO editors (created_at, public_id, current_template_id, user_id) VALUES (?, ?, ?, ?)
+2026-02-24 21:56:18,555 - sqlalchemy.engine.Engine - INFO - [generated in 0.00009s] ('2026-02-24 18:56:18.555398', 'ed-25a3f4c803', None, 1)
+2026-02-24 21:56:18,555 - sqlalchemy.engine.Engine - INFO - SELECT qrcodes.id, qrcodes.code, qrcodes.link, qrcodes.user_id, qrcodes.editor_id 
+FROM qrcodes 
+WHERE qrcodes.user_id = ?
+2026-02-24 21:56:18,556 - sqlalchemy.engine.Engine - INFO - [generated in 0.00006s] (1,)
+2026-02-24 21:56:18,556 - sqlalchemy.engine.Engine - INFO - INSERT INTO qrcodes (code, link, user_id, editor_id) VALUES (?, ?, ?, ?)
+2026-02-24 21:56:18,556 - sqlalchemy.engine.Engine - INFO - [generated in 0.00007s] ('qr-ed-25a3f4c803', None, 1, 1)
+2026-02-24 21:57:01,943 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-02-24 22:00:56,977 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-02-24 22:00:56,978 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("users")
+2026-02-24 22:00:56,978 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 22:00:56,978 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("users")
+2026-02-24 22:00:56,978 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 22:00:56,979 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("products")
+2026-02-24 22:00:56,979 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 22:00:56,979 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("products")
+2026-02-24 22:00:56,979 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 22:00:56,979 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("orders")
+2026-02-24 22:00:56,979 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 22:00:56,979 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("orders")
+2026-02-24 22:00:56,979 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 22:00:56,980 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("order_items")
+2026-02-24 22:00:56,980 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 22:00:56,980 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("order_items")
+2026-02-24 22:00:56,980 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 22:00:56,980 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("reviews")
+2026-02-24 22:00:56,980 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 22:00:56,980 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("reviews")
+2026-02-24 22:00:56,980 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 22:00:56,980 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("templates")
+2026-02-24 22:00:56,980 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 22:00:56,981 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("templates")
+2026-02-24 22:00:56,981 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 22:00:56,981 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("editors")
+2026-02-24 22:00:56,981 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 22:00:56,981 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("editors")
+2026-02-24 22:00:56,981 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 22:00:56,981 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("qrcodes")
+2026-02-24 22:00:56,981 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 22:00:56,981 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("qrcodes")
+2026-02-24 22:00:56,981 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 22:00:56,981 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("faqs")
+2026-02-24 22:00:56,981 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 22:00:56,982 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("faqs")
+2026-02-24 22:00:56,982 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 22:00:56,982 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("bad_words")
+2026-02-24 22:00:56,982 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 22:00:56,982 - sqlalchemy.engine.Engine - INFO - PRAGMA temp.table_info("bad_words")
+2026-02-24 22:00:56,982 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 22:00:56,982 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE users (
+	id INTEGER NOT NULL, 
+	username VARCHAR NOT NULL, 
+	email VARCHAR NOT NULL, 
+	hashed_password VARCHAR NOT NULL, 
+	role_id INTEGER, 
+	img_url VARCHAR, 
+	is_active BOOLEAN NOT NULL, 
+	is_superuser BOOLEAN NOT NULL, 
+	is_verified BOOLEAN NOT NULL, 
+	is_temporary_data BOOLEAN NOT NULL, 
+	PRIMARY KEY (id), 
+	UNIQUE (email)
+)
+
+
+2026-02-24 22:00:56,983 - sqlalchemy.engine.Engine - INFO - [no key 0.00004s] ()
+2026-02-24 22:00:56,983 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE faqs (
+	id INTEGER NOT NULL, 
+	name VARCHAR NOT NULL, 
+	email VARCHAR NOT NULL, 
+	question TEXT NOT NULL, 
+	answer TEXT, 
+	PRIMARY KEY (id)
+)
+
+
+2026-02-24 22:00:56,983 - sqlalchemy.engine.Engine - INFO - [no key 0.00004s] ()
+2026-02-24 22:00:56,983 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE bad_words (
+	id INTEGER NOT NULL, 
+	word VARCHAR NOT NULL, 
+	PRIMARY KEY (id), 
+	UNIQUE (word)
+)
+
+
+2026-02-24 22:00:56,983 - sqlalchemy.engine.Engine - INFO - [no key 0.00003s] ()
+2026-02-24 22:00:56,984 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE orders (
+	id INTEGER NOT NULL, 
+	created_at DATETIME NOT NULL, 
+	status VARCHAR NOT NULL, 
+	total_amount INTEGER, 
+	contact_info VARCHAR, 
+	country VARCHAR, 
+	city VARCHAR, 
+	first_name VARCHAR, 
+	last_name VARCHAR, 
+	delivery_address VARCHAR, 
+	zip_code VARCHAR, 
+	user_id INTEGER NOT NULL, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE
+)
+
+
+2026-02-24 22:00:56,984 - sqlalchemy.engine.Engine - INFO - [no key 0.00003s] ()
+2026-02-24 22:00:56,984 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE reviews (
+	id INTEGER NOT NULL, 
+	stars INTEGER NOT NULL, 
+	content TEXT NOT NULL, 
+	is_flagged BOOLEAN NOT NULL, 
+	user_id INTEGER NOT NULL, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE
+)
+
+
+2026-02-24 22:00:56,984 - sqlalchemy.engine.Engine - INFO - [no key 0.00003s] ()
+2026-02-24 22:00:56,984 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE templates (
+	id INTEGER NOT NULL, 
+	created_at DATETIME NOT NULL, 
+	name VARCHAR NOT NULL, 
+	file_url VARCHAR NOT NULL, 
+	thumb_url VARCHAR, 
+	description TEXT, 
+	owner_user_id INTEGER, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(owner_user_id) REFERENCES users (id) ON DELETE SET NULL
+)
+
+
+2026-02-24 22:00:56,984 - sqlalchemy.engine.Engine - INFO - [no key 0.00005s] ()
+2026-02-24 22:00:56,984 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE editors (
+	id INTEGER NOT NULL, 
+	created_at DATETIME NOT NULL, 
+	public_id VARCHAR NOT NULL, 
+	current_template_id INTEGER, 
+	user_id INTEGER NOT NULL, 
+	PRIMARY KEY (id), 
+	UNIQUE (public_id), 
+	FOREIGN KEY(current_template_id) REFERENCES templates (id) ON DELETE SET NULL, 
+	UNIQUE (user_id), 
+	FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE
+)
+
+
+2026-02-24 22:00:56,984 - sqlalchemy.engine.Engine - INFO - [no key 0.00003s] ()
+2026-02-24 22:00:56,985 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE qrcodes (
+	id INTEGER NOT NULL, 
+	code VARCHAR NOT NULL, 
+	link VARCHAR, 
+	user_id INTEGER NOT NULL, 
+	editor_id INTEGER NOT NULL, 
+	PRIMARY KEY (id), 
+	UNIQUE (code), 
+	UNIQUE (user_id), 
+	FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE, 
+	UNIQUE (editor_id), 
+	FOREIGN KEY(editor_id) REFERENCES editors (id) ON DELETE CASCADE
+)
+
+
+2026-02-24 22:00:56,985 - sqlalchemy.engine.Engine - INFO - [no key 0.00003s] ()
+2026-02-24 22:00:56,985 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE products (
+	id INTEGER NOT NULL, 
+	type VARCHAR NOT NULL, 
+	size VARCHAR NOT NULL, 
+	color VARCHAR NOT NULL, 
+	description TEXT, 
+	img_url VARCHAR, 
+	price INTEGER, 
+	qr_id INTEGER, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(qr_id) REFERENCES qrcodes (id)
+)
+
+
+2026-02-24 22:00:56,985 - sqlalchemy.engine.Engine - INFO - [no key 0.00004s] ()
+2026-02-24 22:00:56,985 - sqlalchemy.engine.Engine - INFO - 
+CREATE TABLE order_items (
+	id INTEGER NOT NULL, 
+	quantity INTEGER NOT NULL, 
+	amount INTEGER, 
+	order_id INTEGER NOT NULL, 
+	product_id INTEGER NOT NULL, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(order_id) REFERENCES orders (id) ON DELETE CASCADE, 
+	FOREIGN KEY(product_id) REFERENCES products (id) ON DELETE CASCADE
+)
+
+
+2026-02-24 22:00:56,985 - sqlalchemy.engine.Engine - INFO - [no key 0.00003s] ()
+2026-02-24 22:00:56,986 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-02-24 22:00:56,986 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-02-24 22:00:56,997 - sqlalchemy.engine.Engine - INFO - SELECT users.id, users.username, users.email, users.hashed_password, users.role_id, users.img_url, users.is_active, users.is_superuser, users.is_verified, users.is_temporary_data 
+FROM users 
+WHERE users.is_superuser IS 1
+2026-02-24 22:00:56,997 - sqlalchemy.engine.Engine - INFO - [generated in 0.00011s] ()
+2026-02-24 22:00:57,259 - sqlalchemy.engine.Engine - INFO - INSERT INTO users (username, email, hashed_password, role_id, img_url, is_active, is_superuser, is_verified, is_temporary_data) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+2026-02-24 22:00:57,259 - sqlalchemy.engine.Engine - INFO - [generated in 0.00021s] ('admin', 'admin@example.com', '$2b$12$FyzUC1xw/62N/H1t0gZpM./3dpPXpjVMhSTJqbEqKAW5S9z08SmeG', 1, None, 1, 1, 1, 0)
+2026-02-24 22:00:57,259 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-02-24 22:00:57,260 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-02-24 22:00:57,261 - sqlalchemy.engine.Engine - INFO - SELECT users.id, users.username, users.email, users.hashed_password, users.role_id, users.img_url, users.is_active, users.is_superuser, users.is_verified, users.is_temporary_data 
+FROM users 
+WHERE users.id = ?
+2026-02-24 22:00:57,261 - sqlalchemy.engine.Engine - INFO - [generated in 0.00006s] (1,)
+2026-02-24 22:00:57,262 - sqlalchemy.engine.Engine - INFO - SELECT editors.id AS editors_id, editors.created_at AS editors_created_at, editors.public_id AS editors_public_id, editors.current_template_id AS editors_current_template_id, editors.user_id AS editors_user_id 
+FROM editors 
+WHERE ? = editors.user_id
+2026-02-24 22:00:57,262 - sqlalchemy.engine.Engine - INFO - [generated in 0.00007s] (1,)
+2026-02-24 22:00:57,263 - sqlalchemy.engine.Engine - INFO - SELECT orders.id AS orders_id, orders.created_at AS orders_created_at, orders.status AS orders_status, orders.total_amount AS orders_total_amount, orders.contact_info AS orders_contact_info, orders.country AS orders_country, orders.city AS orders_city, orders.first_name AS orders_first_name, orders.last_name AS orders_last_name, orders.delivery_address AS orders_delivery_address, orders.zip_code AS orders_zip_code, orders.user_id AS orders_user_id 
+FROM orders 
+WHERE ? = orders.user_id
+2026-02-24 22:00:57,263 - sqlalchemy.engine.Engine - INFO - [generated in 0.00009s] (1,)
+2026-02-24 22:00:57,264 - sqlalchemy.engine.Engine - INFO - SELECT qrcodes.id AS qrcodes_id, qrcodes.code AS qrcodes_code, qrcodes.link AS qrcodes_link, qrcodes.user_id AS qrcodes_user_id, qrcodes.editor_id AS qrcodes_editor_id 
+FROM qrcodes 
+WHERE ? = qrcodes.user_id
+2026-02-24 22:00:57,264 - sqlalchemy.engine.Engine - INFO - [generated in 0.00008s] (1,)
+2026-02-24 22:00:57,265 - sqlalchemy.engine.Engine - INFO - SELECT reviews.id AS reviews_id, reviews.stars AS reviews_stars, reviews.content AS reviews_content, reviews.is_flagged AS reviews_is_flagged, reviews.user_id AS reviews_user_id 
+FROM reviews 
+WHERE ? = reviews.user_id
+2026-02-24 22:00:57,265 - sqlalchemy.engine.Engine - INFO - [generated in 0.00007s] (1,)
+2026-02-24 22:00:57,266 - sqlalchemy.engine.Engine - INFO - SELECT templates.id AS templates_id, templates.created_at AS templates_created_at, templates.name AS templates_name, templates.file_url AS templates_file_url, templates.thumb_url AS templates_thumb_url, templates.description AS templates_description, templates.owner_user_id AS templates_owner_user_id 
+FROM templates 
+WHERE ? = templates.owner_user_id
+2026-02-24 22:00:57,266 - sqlalchemy.engine.Engine - INFO - [generated in 0.00006s] (1,)
+2026-02-24 22:00:57,269 - sqlalchemy.engine.Engine - INFO - SELECT editors.id, editors.created_at, editors.public_id, editors.current_template_id, editors.user_id 
+FROM editors 
+WHERE editors.user_id = ?
+2026-02-24 22:00:57,269 - sqlalchemy.engine.Engine - INFO - [generated in 0.00007s] (1,)
+2026-02-24 22:00:57,270 - sqlalchemy.engine.Engine - INFO - INSERT INTO editors (created_at, public_id, current_template_id, user_id) VALUES (?, ?, ?, ?)
+2026-02-24 22:00:57,270 - sqlalchemy.engine.Engine - INFO - [generated in 0.00009s] ('2026-02-24 19:00:57.270601', 'ed-7894a18b10', None, 1)
+2026-02-24 22:00:57,271 - sqlalchemy.engine.Engine - INFO - SELECT qrcodes.id, qrcodes.code, qrcodes.link, qrcodes.user_id, qrcodes.editor_id 
+FROM qrcodes 
+WHERE qrcodes.user_id = ?
+2026-02-24 22:00:57,271 - sqlalchemy.engine.Engine - INFO - [generated in 0.00006s] (1,)
+2026-02-24 22:00:57,271 - sqlalchemy.engine.Engine - INFO - INSERT INTO qrcodes (code, link, user_id, editor_id) VALUES (?, ?, ?, ?)
+2026-02-24 22:00:57,271 - sqlalchemy.engine.Engine - INFO - [generated in 0.00006s] ('qr-ed-7894a18b10', None, 1, 1)
+2026-02-24 22:01:29,113 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-02-24 22:05:49,616 - sqlalchemy.engine.Engine - INFO - select pg_catalog.version()
+2026-02-24 22:05:49,616 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 22:05:49,619 - sqlalchemy.engine.Engine - INFO - select current_schema()
+2026-02-24 22:05:49,619 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 22:05:49,622 - sqlalchemy.engine.Engine - INFO - show standard_conforming_strings
+2026-02-24 22:05:49,622 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 22:05:49,623 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-02-24 22:05:49,625 - sqlalchemy.engine.Engine - INFO - SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-24 22:05:49,625 - sqlalchemy.engine.Engine - INFO - [generated in 0.00013s] ('users', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-24 22:05:49,636 - sqlalchemy.engine.Engine - INFO - SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-24 22:05:49,636 - sqlalchemy.engine.Engine - INFO - [cached since 0.01107s ago] ('products', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-24 22:05:49,637 - sqlalchemy.engine.Engine - INFO - SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-24 22:05:49,637 - sqlalchemy.engine.Engine - INFO - [cached since 0.0124s ago] ('orders', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-24 22:05:49,638 - sqlalchemy.engine.Engine - INFO - SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-24 22:05:49,639 - sqlalchemy.engine.Engine - INFO - [cached since 0.01345s ago] ('order_items', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-24 22:05:49,639 - sqlalchemy.engine.Engine - INFO - SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-24 22:05:49,639 - sqlalchemy.engine.Engine - INFO - [cached since 0.01428s ago] ('reviews', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-24 22:05:49,640 - sqlalchemy.engine.Engine - INFO - SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-24 22:05:49,640 - sqlalchemy.engine.Engine - INFO - [cached since 0.01494s ago] ('templates', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-24 22:05:49,641 - sqlalchemy.engine.Engine - INFO - SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-24 22:05:49,641 - sqlalchemy.engine.Engine - INFO - [cached since 0.01578s ago] ('editors', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-24 22:05:49,641 - sqlalchemy.engine.Engine - INFO - SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-24 22:05:49,641 - sqlalchemy.engine.Engine - INFO - [cached since 0.01635s ago] ('qrcodes', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-24 22:05:49,642 - sqlalchemy.engine.Engine - INFO - SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-24 22:05:49,642 - sqlalchemy.engine.Engine - INFO - [cached since 0.017s ago] ('faqs', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-24 22:05:49,643 - sqlalchemy.engine.Engine - INFO - SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-24 22:05:49,643 - sqlalchemy.engine.Engine - INFO - [cached since 0.0177s ago] ('bad_words', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-24 22:05:49,644 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-02-24 22:05:49,646 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-02-24 22:05:49,661 - sqlalchemy.engine.Engine - INFO - SELECT users.id, users.username, users.email, users.hashed_password, users.role_id, users.img_url, users.is_active, users.is_superuser, users.is_verified, users.is_temporary_data 
+FROM users 
+WHERE users.is_superuser IS true
+2026-02-24 22:05:49,661 - sqlalchemy.engine.Engine - INFO - [generated in 0.00019s] ()
+2026-02-24 22:05:49,667 - sqlalchemy.engine.Engine - INFO - SELECT qrcodes.user_id AS qrcodes_user_id, qrcodes.id AS qrcodes_id, qrcodes.code AS qrcodes_code, qrcodes.link AS qrcodes_link, qrcodes.editor_id AS qrcodes_editor_id 
+FROM qrcodes 
+WHERE qrcodes.user_id IN ($1::INTEGER)
+2026-02-24 22:05:49,667 - sqlalchemy.engine.Engine - INFO - [generated in 0.00022s] (1,)
+2026-02-24 22:05:49,672 - sqlalchemy.engine.Engine - INFO - SELECT reviews.user_id AS reviews_user_id, reviews.id AS reviews_id, reviews.stars AS reviews_stars, reviews.content AS reviews_content, reviews.is_flagged AS reviews_is_flagged 
+FROM reviews 
+WHERE reviews.user_id IN ($1::INTEGER)
+2026-02-24 22:05:49,673 - sqlalchemy.engine.Engine - INFO - [generated in 0.00021s] (1,)
+2026-02-24 22:05:49,675 - sqlalchemy.engine.Engine - INFO - SELECT templates.owner_user_id AS templates_owner_user_id, templates.id AS templates_id, templates.created_at AS templates_created_at, templates.name AS templates_name, templates.file_url AS templates_file_url, templates.thumb_url AS templates_thumb_url, templates.description AS templates_description 
+FROM templates 
+WHERE templates.owner_user_id IN ($1::INTEGER)
+2026-02-24 22:05:49,675 - sqlalchemy.engine.Engine - INFO - [generated in 0.00013s] (1,)
+2026-02-24 22:05:49,678 - sqlalchemy.engine.Engine - INFO - SELECT orders.user_id AS orders_user_id, orders.id AS orders_id, orders.created_at AS orders_created_at, orders.status AS orders_status, orders.total_amount AS orders_total_amount, orders.contact_info AS orders_contact_info, orders.country AS orders_country, orders.city AS orders_city, orders.first_name AS orders_first_name, orders.last_name AS orders_last_name, orders.delivery_address AS orders_delivery_address, orders.zip_code AS orders_zip_code 
+FROM orders 
+WHERE orders.user_id IN ($1::INTEGER)
+2026-02-24 22:05:49,678 - sqlalchemy.engine.Engine - INFO - [generated in 0.00013s] (1,)
+2026-02-24 22:05:49,680 - sqlalchemy.engine.Engine - INFO - SELECT editors.user_id AS editors_user_id, editors.id AS editors_id, editors.created_at AS editors_created_at, editors.public_id AS editors_public_id, editors.current_template_id AS editors_current_template_id 
+FROM editors 
+WHERE editors.user_id IN ($1::INTEGER)
+2026-02-24 22:05:49,680 - sqlalchemy.engine.Engine - INFO - [generated in 0.00011s] (1,)
+2026-02-24 22:05:49,682 - sqlalchemy.engine.Engine - INFO - SELECT editors.id AS editors_id, editors.created_at AS editors_created_at, editors.public_id AS editors_public_id, editors.current_template_id AS editors_current_template_id, editors.user_id AS editors_user_id 
+FROM editors 
+WHERE editors.id IN ($1::INTEGER)
+2026-02-24 22:05:49,682 - sqlalchemy.engine.Engine - INFO - [generated in 0.00013s] (1,)
+2026-02-24 22:05:49,683 - sqlalchemy.engine.Engine - INFO - SELECT products.qr_id AS products_qr_id, products.id AS products_id, products.type AS products_type, products.size AS products_size, products.color AS products_color, products.description AS products_description, products.img_url AS products_img_url, products.price AS products_price 
+FROM products 
+WHERE products.qr_id IN ($1::INTEGER)
+2026-02-24 22:05:49,683 - sqlalchemy.engine.Engine - INFO - [generated in 0.00011s] (1,)
+2026-02-24 22:05:49,685 - sqlalchemy.engine.Engine - INFO - SELECT qrcodes.editor_id AS qrcodes_editor_id, qrcodes.id AS qrcodes_id, qrcodes.code AS qrcodes_code, qrcodes.link AS qrcodes_link, qrcodes.user_id AS qrcodes_user_id 
+FROM qrcodes 
+WHERE qrcodes.editor_id IN ($1::INTEGER)
+2026-02-24 22:05:49,685 - sqlalchemy.engine.Engine - INFO - [generated in 0.00011s] (1,)
+2026-02-24 22:05:49,687 - sqlalchemy.engine.Engine - INFO - SELECT products.qr_id AS products_qr_id, products.id AS products_id, products.type AS products_type, products.size AS products_size, products.color AS products_color, products.description AS products_description, products.img_url AS products_img_url, products.price AS products_price 
+FROM products 
+WHERE products.qr_id IN ($1::INTEGER)
+2026-02-24 22:05:49,687 - sqlalchemy.engine.Engine - INFO - [generated in 0.00012s] (1,)
+2026-02-24 22:05:49,692 - sqlalchemy.engine.Engine - INFO - SELECT editors.id, editors.created_at, editors.public_id, editors.current_template_id, editors.user_id 
+FROM editors 
+WHERE editors.user_id = $1::INTEGER
+2026-02-24 22:05:49,692 - sqlalchemy.engine.Engine - INFO - [generated in 0.00012s] (1,)
+2026-02-24 22:05:49,694 - sqlalchemy.engine.Engine - INFO - SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.hashed_password AS users_hashed_password, users.role_id AS users_role_id, users.img_url AS users_img_url, users.is_active AS users_is_active, users.is_superuser AS users_is_superuser, users.is_verified AS users_is_verified, users.is_temporary_data AS users_is_temporary_data 
+FROM users 
+WHERE users.id IN ($1::INTEGER)
+2026-02-24 22:05:49,694 - sqlalchemy.engine.Engine - INFO - [generated in 0.00018s] (1,)
+2026-02-24 22:05:49,696 - sqlalchemy.engine.Engine - INFO - SELECT qrcodes.editor_id AS qrcodes_editor_id, qrcodes.id AS qrcodes_id, qrcodes.code AS qrcodes_code, qrcodes.link AS qrcodes_link, qrcodes.user_id AS qrcodes_user_id 
+FROM qrcodes 
+WHERE qrcodes.editor_id IN ($1::INTEGER)
+2026-02-24 22:05:49,696 - sqlalchemy.engine.Engine - INFO - [generated in 0.00013s] (1,)
+2026-02-24 22:05:49,697 - sqlalchemy.engine.Engine - INFO - SELECT qrcodes.user_id AS qrcodes_user_id, qrcodes.id AS qrcodes_id, qrcodes.code AS qrcodes_code, qrcodes.link AS qrcodes_link, qrcodes.editor_id AS qrcodes_editor_id 
+FROM qrcodes 
+WHERE qrcodes.user_id IN ($1::INTEGER)
+2026-02-24 22:05:49,697 - sqlalchemy.engine.Engine - INFO - [generated in 0.00010s] (1,)
+2026-02-24 22:05:49,698 - sqlalchemy.engine.Engine - INFO - SELECT reviews.user_id AS reviews_user_id, reviews.id AS reviews_id, reviews.stars AS reviews_stars, reviews.content AS reviews_content, reviews.is_flagged AS reviews_is_flagged 
+FROM reviews 
+WHERE reviews.user_id IN ($1::INTEGER)
+2026-02-24 22:05:49,698 - sqlalchemy.engine.Engine - INFO - [generated in 0.00011s] (1,)
+2026-02-24 22:05:49,699 - sqlalchemy.engine.Engine - INFO - SELECT templates.owner_user_id AS templates_owner_user_id, templates.id AS templates_id, templates.created_at AS templates_created_at, templates.name AS templates_name, templates.file_url AS templates_file_url, templates.thumb_url AS templates_thumb_url, templates.description AS templates_description 
+FROM templates 
+WHERE templates.owner_user_id IN ($1::INTEGER)
+2026-02-24 22:05:49,699 - sqlalchemy.engine.Engine - INFO - [generated in 0.00013s] (1,)
+2026-02-24 22:05:49,700 - sqlalchemy.engine.Engine - INFO - SELECT orders.user_id AS orders_user_id, orders.id AS orders_id, orders.created_at AS orders_created_at, orders.status AS orders_status, orders.total_amount AS orders_total_amount, orders.contact_info AS orders_contact_info, orders.country AS orders_country, orders.city AS orders_city, orders.first_name AS orders_first_name, orders.last_name AS orders_last_name, orders.delivery_address AS orders_delivery_address, orders.zip_code AS orders_zip_code 
+FROM orders 
+WHERE orders.user_id IN ($1::INTEGER)
+2026-02-24 22:05:49,700 - sqlalchemy.engine.Engine - INFO - [generated in 0.00010s] (1,)
+2026-02-24 22:05:49,701 - sqlalchemy.engine.Engine - INFO - SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.hashed_password AS users_hashed_password, users.role_id AS users_role_id, users.img_url AS users_img_url, users.is_active AS users_is_active, users.is_superuser AS users_is_superuser, users.is_verified AS users_is_verified, users.is_temporary_data AS users_is_temporary_data 
+FROM users 
+WHERE users.id IN ($1::INTEGER)
+2026-02-24 22:05:49,701 - sqlalchemy.engine.Engine - INFO - [generated in 0.00010s] (1,)
+2026-02-24 22:05:49,702 - sqlalchemy.engine.Engine - INFO - SELECT products.qr_id AS products_qr_id, products.id AS products_id, products.type AS products_type, products.size AS products_size, products.color AS products_color, products.description AS products_description, products.img_url AS products_img_url, products.price AS products_price 
+FROM products 
+WHERE products.qr_id IN ($1::INTEGER)
+2026-02-24 22:05:49,702 - sqlalchemy.engine.Engine - INFO - [generated in 0.00010s] (1,)
+2026-02-24 22:05:49,703 - sqlalchemy.engine.Engine - INFO - SELECT products.qr_id AS products_qr_id, products.id AS products_id, products.type AS products_type, products.size AS products_size, products.color AS products_color, products.description AS products_description, products.img_url AS products_img_url, products.price AS products_price 
+FROM products 
+WHERE products.qr_id IN ($1::INTEGER)
+2026-02-24 22:05:49,703 - sqlalchemy.engine.Engine - INFO - [generated in 0.00010s] (1,)
+2026-02-24 22:05:49,704 - sqlalchemy.engine.Engine - INFO - SELECT reviews.user_id AS reviews_user_id, reviews.id AS reviews_id, reviews.stars AS reviews_stars, reviews.content AS reviews_content, reviews.is_flagged AS reviews_is_flagged 
+FROM reviews 
+WHERE reviews.user_id IN ($1::INTEGER)
+2026-02-24 22:05:49,704 - sqlalchemy.engine.Engine - INFO - [generated in 0.00011s] (1,)
+2026-02-24 22:05:49,705 - sqlalchemy.engine.Engine - INFO - SELECT templates.owner_user_id AS templates_owner_user_id, templates.id AS templates_id, templates.created_at AS templates_created_at, templates.name AS templates_name, templates.file_url AS templates_file_url, templates.thumb_url AS templates_thumb_url, templates.description AS templates_description 
+FROM templates 
+WHERE templates.owner_user_id IN ($1::INTEGER)
+2026-02-24 22:05:49,706 - sqlalchemy.engine.Engine - INFO - [generated in 0.00013s] (1,)
+2026-02-24 22:05:49,707 - sqlalchemy.engine.Engine - INFO - SELECT orders.user_id AS orders_user_id, orders.id AS orders_id, orders.created_at AS orders_created_at, orders.status AS orders_status, orders.total_amount AS orders_total_amount, orders.contact_info AS orders_contact_info, orders.country AS orders_country, orders.city AS orders_city, orders.first_name AS orders_first_name, orders.last_name AS orders_last_name, orders.delivery_address AS orders_delivery_address, orders.zip_code AS orders_zip_code 
+FROM orders 
+WHERE orders.user_id IN ($1::INTEGER)
+2026-02-24 22:05:49,707 - sqlalchemy.engine.Engine - INFO - [generated in 0.00012s] (1,)
+2026-02-24 22:05:49,708 - sqlalchemy.engine.Engine - INFO - SELECT qrcodes.id, qrcodes.code, qrcodes.link, qrcodes.user_id, qrcodes.editor_id 
+FROM qrcodes 
+WHERE qrcodes.user_id = $1::INTEGER
+2026-02-24 22:05:49,708 - sqlalchemy.engine.Engine - INFO - [generated in 0.00009s] (1,)
+2026-02-24 22:05:49,710 - sqlalchemy.engine.Engine - INFO - SELECT editors.id AS editors_id, editors.created_at AS editors_created_at, editors.public_id AS editors_public_id, editors.current_template_id AS editors_current_template_id, editors.user_id AS editors_user_id 
+FROM editors 
+WHERE editors.id IN ($1::INTEGER)
+2026-02-24 22:05:49,710 - sqlalchemy.engine.Engine - INFO - [generated in 0.00011s] (1,)
+2026-02-24 22:05:49,711 - sqlalchemy.engine.Engine - INFO - SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.hashed_password AS users_hashed_password, users.role_id AS users_role_id, users.img_url AS users_img_url, users.is_active AS users_is_active, users.is_superuser AS users_is_superuser, users.is_verified AS users_is_verified, users.is_temporary_data AS users_is_temporary_data 
+FROM users 
+WHERE users.id IN ($1::INTEGER)
+2026-02-24 22:05:49,711 - sqlalchemy.engine.Engine - INFO - [generated in 0.00012s] (1,)
+2026-02-24 22:05:49,712 - sqlalchemy.engine.Engine - INFO - SELECT products.qr_id AS products_qr_id, products.id AS products_id, products.type AS products_type, products.size AS products_size, products.color AS products_color, products.description AS products_description, products.img_url AS products_img_url, products.price AS products_price 
+FROM products 
+WHERE products.qr_id IN ($1::INTEGER)
+2026-02-24 22:05:49,712 - sqlalchemy.engine.Engine - INFO - [generated in 0.00013s] (1,)
+2026-02-24 22:05:49,714 - sqlalchemy.engine.Engine - INFO - SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.hashed_password AS users_hashed_password, users.role_id AS users_role_id, users.img_url AS users_img_url, users.is_active AS users_is_active, users.is_superuser AS users_is_superuser, users.is_verified AS users_is_verified, users.is_temporary_data AS users_is_temporary_data 
+FROM users 
+WHERE users.id IN ($1::INTEGER)
+2026-02-24 22:05:49,714 - sqlalchemy.engine.Engine - INFO - [generated in 0.00027s] (1,)
+2026-02-24 22:05:49,716 - sqlalchemy.engine.Engine - INFO - SELECT reviews.user_id AS reviews_user_id, reviews.id AS reviews_id, reviews.stars AS reviews_stars, reviews.content AS reviews_content, reviews.is_flagged AS reviews_is_flagged 
+FROM reviews 
+WHERE reviews.user_id IN ($1::INTEGER)
+2026-02-24 22:05:49,716 - sqlalchemy.engine.Engine - INFO - [generated in 0.00014s] (1,)
+2026-02-24 22:05:49,717 - sqlalchemy.engine.Engine - INFO - SELECT templates.owner_user_id AS templates_owner_user_id, templates.id AS templates_id, templates.created_at AS templates_created_at, templates.name AS templates_name, templates.file_url AS templates_file_url, templates.thumb_url AS templates_thumb_url, templates.description AS templates_description 
+FROM templates 
+WHERE templates.owner_user_id IN ($1::INTEGER)
+2026-02-24 22:05:49,717 - sqlalchemy.engine.Engine - INFO - [generated in 0.00010s] (1,)
+2026-02-24 22:05:49,718 - sqlalchemy.engine.Engine - INFO - SELECT orders.user_id AS orders_user_id, orders.id AS orders_id, orders.created_at AS orders_created_at, orders.status AS orders_status, orders.total_amount AS orders_total_amount, orders.contact_info AS orders_contact_info, orders.country AS orders_country, orders.city AS orders_city, orders.first_name AS orders_first_name, orders.last_name AS orders_last_name, orders.delivery_address AS orders_delivery_address, orders.zip_code AS orders_zip_code 
+FROM orders 
+WHERE orders.user_id IN ($1::INTEGER)
+2026-02-24 22:05:49,718 - sqlalchemy.engine.Engine - INFO - [generated in 0.00009s] (1,)
+2026-02-24 22:05:49,719 - sqlalchemy.engine.Engine - INFO - SELECT editors.user_id AS editors_user_id, editors.id AS editors_id, editors.created_at AS editors_created_at, editors.public_id AS editors_public_id, editors.current_template_id AS editors_current_template_id 
+FROM editors 
+WHERE editors.user_id IN ($1::INTEGER)
+2026-02-24 22:05:49,719 - sqlalchemy.engine.Engine - INFO - [generated in 0.00010s] (1,)
+2026-02-24 22:05:49,720 - sqlalchemy.engine.Engine - INFO - SELECT reviews.user_id AS reviews_user_id, reviews.id AS reviews_id, reviews.stars AS reviews_stars, reviews.content AS reviews_content, reviews.is_flagged AS reviews_is_flagged 
+FROM reviews 
+WHERE reviews.user_id IN ($1::INTEGER)
+2026-02-24 22:05:49,720 - sqlalchemy.engine.Engine - INFO - [generated in 0.00013s] (1,)
+2026-02-24 22:05:49,721 - sqlalchemy.engine.Engine - INFO - SELECT templates.owner_user_id AS templates_owner_user_id, templates.id AS templates_id, templates.created_at AS templates_created_at, templates.name AS templates_name, templates.file_url AS templates_file_url, templates.thumb_url AS templates_thumb_url, templates.description AS templates_description 
+FROM templates 
+WHERE templates.owner_user_id IN ($1::INTEGER)
+2026-02-24 22:05:49,721 - sqlalchemy.engine.Engine - INFO - [generated in 0.00017s] (1,)
+2026-02-24 22:05:49,723 - sqlalchemy.engine.Engine - INFO - SELECT orders.user_id AS orders_user_id, orders.id AS orders_id, orders.created_at AS orders_created_at, orders.status AS orders_status, orders.total_amount AS orders_total_amount, orders.contact_info AS orders_contact_info, orders.country AS orders_country, orders.city AS orders_city, orders.first_name AS orders_first_name, orders.last_name AS orders_last_name, orders.delivery_address AS orders_delivery_address, orders.zip_code AS orders_zip_code 
+FROM orders 
+WHERE orders.user_id IN ($1::INTEGER)
+2026-02-24 22:05:49,723 - sqlalchemy.engine.Engine - INFO - [generated in 0.00015s] (1,)
+2026-02-24 22:05:49,724 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-02-24 22:05:49,726 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-02-24 22:05:49,726 - sqlalchemy.engine.Engine - INFO - SELECT editors.id, editors.created_at, editors.public_id, editors.current_template_id, editors.user_id 
+FROM editors 
+WHERE editors.id = $1::INTEGER
+2026-02-24 22:05:49,727 - sqlalchemy.engine.Engine - INFO - [generated in 0.00009s] (1,)
+2026-02-24 22:05:49,731 - sqlalchemy.engine.Engine - INFO - SELECT qrcodes.id AS qrcodes_id, qrcodes.code AS qrcodes_code, qrcodes.link AS qrcodes_link, qrcodes.user_id AS qrcodes_user_id, qrcodes.editor_id AS qrcodes_editor_id 
+FROM qrcodes 
+WHERE $1::INTEGER = qrcodes.editor_id
+2026-02-24 22:05:49,732 - sqlalchemy.engine.Engine - INFO - [generated in 0.00046s] (1,)
+2026-02-24 22:05:49,734 - sqlalchemy.engine.Engine - INFO - SELECT qrcodes.id, qrcodes.code, qrcodes.link, qrcodes.user_id, qrcodes.editor_id 
+FROM qrcodes 
+WHERE qrcodes.id = $1::INTEGER
+2026-02-24 22:05:49,734 - sqlalchemy.engine.Engine - INFO - [generated in 0.00013s] (1,)
+2026-02-24 22:05:49,736 - sqlalchemy.engine.Engine - INFO - SELECT products.id AS products_id, products.type AS products_type, products.size AS products_size, products.color AS products_color, products.description AS products_description, products.img_url AS products_img_url, products.price AS products_price, products.qr_id AS products_qr_id 
+FROM products 
+WHERE $1::INTEGER = products.qr_id
+2026-02-24 22:05:49,736 - sqlalchemy.engine.Engine - INFO - [generated in 0.00009s] (1,)
+2026-02-24 22:05:49,737 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-02-24 22:05:49,739 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-02-24 22:05:49,739 - sqlalchemy.engine.Engine - INFO - SELECT products.id, products.type, products.size, products.color, products.description, products.img_url, products.price, products.qr_id 
+FROM products 
+WHERE products.type = $1::VARCHAR AND products.size = $2::VARCHAR AND products.color = $3::VARCHAR
+2026-02-24 22:05:49,739 - sqlalchemy.engine.Engine - INFO - [generated in 0.00009s] ('Футболка', 'M', 'Белый')
+2026-02-24 22:05:49,742 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-02-24 22:06:16,355 - sqlalchemy.engine.Engine - INFO - select pg_catalog.version()
+2026-02-24 22:06:16,356 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 22:06:16,357 - sqlalchemy.engine.Engine - INFO - select current_schema()
+2026-02-24 22:06:16,357 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 22:06:16,361 - sqlalchemy.engine.Engine - INFO - show standard_conforming_strings
+2026-02-24 22:06:16,362 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2026-02-24 22:06:16,364 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-02-24 22:06:16,366 - sqlalchemy.engine.Engine - INFO - SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-24 22:06:16,366 - sqlalchemy.engine.Engine - INFO - [generated in 0.00016s] ('users', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-24 22:06:16,372 - sqlalchemy.engine.Engine - INFO - SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-24 22:06:16,372 - sqlalchemy.engine.Engine - INFO - [cached since 0.005935s ago] ('products', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-24 22:06:16,373 - sqlalchemy.engine.Engine - INFO - SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-24 22:06:16,373 - sqlalchemy.engine.Engine - INFO - [cached since 0.007442s ago] ('orders', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-24 22:06:16,374 - sqlalchemy.engine.Engine - INFO - SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-24 22:06:16,374 - sqlalchemy.engine.Engine - INFO - [cached since 0.00817s ago] ('order_items', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-24 22:06:16,375 - sqlalchemy.engine.Engine - INFO - SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-24 22:06:16,375 - sqlalchemy.engine.Engine - INFO - [cached since 0.008887s ago] ('reviews', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-24 22:06:16,376 - sqlalchemy.engine.Engine - INFO - SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-24 22:06:16,376 - sqlalchemy.engine.Engine - INFO - [cached since 0.009684s ago] ('templates', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-24 22:06:16,376 - sqlalchemy.engine.Engine - INFO - SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-24 22:06:16,376 - sqlalchemy.engine.Engine - INFO - [cached since 0.01048s ago] ('editors', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-24 22:06:16,377 - sqlalchemy.engine.Engine - INFO - SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-24 22:06:16,377 - sqlalchemy.engine.Engine - INFO - [cached since 0.01095s ago] ('qrcodes', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-24 22:06:16,377 - sqlalchemy.engine.Engine - INFO - SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-24 22:06:16,377 - sqlalchemy.engine.Engine - INFO - [cached since 0.01141s ago] ('faqs', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-24 22:06:16,378 - sqlalchemy.engine.Engine - INFO - SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2026-02-24 22:06:16,378 - sqlalchemy.engine.Engine - INFO - [cached since 0.01183s ago] ('bad_words', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2026-02-24 22:06:16,378 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-02-24 22:06:16,380 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-02-24 22:06:16,392 - sqlalchemy.engine.Engine - INFO - SELECT users.id, users.username, users.email, users.hashed_password, users.role_id, users.img_url, users.is_active, users.is_superuser, users.is_verified, users.is_temporary_data 
+FROM users 
+WHERE users.is_superuser IS true
+2026-02-24 22:06:16,392 - sqlalchemy.engine.Engine - INFO - [generated in 0.00016s] ()
+2026-02-24 22:06:16,397 - sqlalchemy.engine.Engine - INFO - SELECT qrcodes.user_id AS qrcodes_user_id, qrcodes.id AS qrcodes_id, qrcodes.code AS qrcodes_code, qrcodes.link AS qrcodes_link, qrcodes.editor_id AS qrcodes_editor_id 
+FROM qrcodes 
+WHERE qrcodes.user_id IN ($1::INTEGER)
+2026-02-24 22:06:16,397 - sqlalchemy.engine.Engine - INFO - [generated in 0.00020s] (1,)
+2026-02-24 22:06:16,401 - sqlalchemy.engine.Engine - INFO - SELECT reviews.user_id AS reviews_user_id, reviews.id AS reviews_id, reviews.stars AS reviews_stars, reviews.content AS reviews_content, reviews.is_flagged AS reviews_is_flagged 
+FROM reviews 
+WHERE reviews.user_id IN ($1::INTEGER)
+2026-02-24 22:06:16,401 - sqlalchemy.engine.Engine - INFO - [generated in 0.00014s] (1,)
+2026-02-24 22:06:16,402 - sqlalchemy.engine.Engine - INFO - SELECT templates.owner_user_id AS templates_owner_user_id, templates.id AS templates_id, templates.created_at AS templates_created_at, templates.name AS templates_name, templates.file_url AS templates_file_url, templates.thumb_url AS templates_thumb_url, templates.description AS templates_description 
+FROM templates 
+WHERE templates.owner_user_id IN ($1::INTEGER)
+2026-02-24 22:06:16,403 - sqlalchemy.engine.Engine - INFO - [generated in 0.00012s] (1,)
+2026-02-24 22:06:16,404 - sqlalchemy.engine.Engine - INFO - SELECT orders.user_id AS orders_user_id, orders.id AS orders_id, orders.created_at AS orders_created_at, orders.status AS orders_status, orders.total_amount AS orders_total_amount, orders.contact_info AS orders_contact_info, orders.country AS orders_country, orders.city AS orders_city, orders.first_name AS orders_first_name, orders.last_name AS orders_last_name, orders.delivery_address AS orders_delivery_address, orders.zip_code AS orders_zip_code 
+FROM orders 
+WHERE orders.user_id IN ($1::INTEGER)
+2026-02-24 22:06:16,404 - sqlalchemy.engine.Engine - INFO - [generated in 0.00010s] (1,)
+2026-02-24 22:06:16,406 - sqlalchemy.engine.Engine - INFO - SELECT editors.user_id AS editors_user_id, editors.id AS editors_id, editors.created_at AS editors_created_at, editors.public_id AS editors_public_id, editors.current_template_id AS editors_current_template_id 
+FROM editors 
+WHERE editors.user_id IN ($1::INTEGER)
+2026-02-24 22:06:16,406 - sqlalchemy.engine.Engine - INFO - [generated in 0.00009s] (1,)
+2026-02-24 22:06:16,407 - sqlalchemy.engine.Engine - INFO - SELECT editors.id AS editors_id, editors.created_at AS editors_created_at, editors.public_id AS editors_public_id, editors.current_template_id AS editors_current_template_id, editors.user_id AS editors_user_id 
+FROM editors 
+WHERE editors.id IN ($1::INTEGER)
+2026-02-24 22:06:16,407 - sqlalchemy.engine.Engine - INFO - [generated in 0.00009s] (1,)
+2026-02-24 22:06:16,409 - sqlalchemy.engine.Engine - INFO - SELECT products.qr_id AS products_qr_id, products.id AS products_id, products.type AS products_type, products.size AS products_size, products.color AS products_color, products.description AS products_description, products.img_url AS products_img_url, products.price AS products_price 
+FROM products 
+WHERE products.qr_id IN ($1::INTEGER)
+2026-02-24 22:06:16,409 - sqlalchemy.engine.Engine - INFO - [generated in 0.00010s] (1,)
+2026-02-24 22:06:16,411 - sqlalchemy.engine.Engine - INFO - SELECT qrcodes.editor_id AS qrcodes_editor_id, qrcodes.id AS qrcodes_id, qrcodes.code AS qrcodes_code, qrcodes.link AS qrcodes_link, qrcodes.user_id AS qrcodes_user_id 
+FROM qrcodes 
+WHERE qrcodes.editor_id IN ($1::INTEGER)
+2026-02-24 22:06:16,411 - sqlalchemy.engine.Engine - INFO - [generated in 0.00011s] (1,)
+2026-02-24 22:06:16,412 - sqlalchemy.engine.Engine - INFO - SELECT products.qr_id AS products_qr_id, products.id AS products_id, products.type AS products_type, products.size AS products_size, products.color AS products_color, products.description AS products_description, products.img_url AS products_img_url, products.price AS products_price 
+FROM products 
+WHERE products.qr_id IN ($1::INTEGER)
+2026-02-24 22:06:16,412 - sqlalchemy.engine.Engine - INFO - [generated in 0.00009s] (1,)
+2026-02-24 22:06:16,416 - sqlalchemy.engine.Engine - INFO - SELECT editors.id, editors.created_at, editors.public_id, editors.current_template_id, editors.user_id 
+FROM editors 
+WHERE editors.user_id = $1::INTEGER
+2026-02-24 22:06:16,416 - sqlalchemy.engine.Engine - INFO - [generated in 0.00008s] (1,)
+2026-02-24 22:06:16,419 - sqlalchemy.engine.Engine - INFO - SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.hashed_password AS users_hashed_password, users.role_id AS users_role_id, users.img_url AS users_img_url, users.is_active AS users_is_active, users.is_superuser AS users_is_superuser, users.is_verified AS users_is_verified, users.is_temporary_data AS users_is_temporary_data 
+FROM users 
+WHERE users.id IN ($1::INTEGER)
+2026-02-24 22:06:16,419 - sqlalchemy.engine.Engine - INFO - [generated in 0.00008s] (1,)
+2026-02-24 22:06:16,421 - sqlalchemy.engine.Engine - INFO - SELECT qrcodes.editor_id AS qrcodes_editor_id, qrcodes.id AS qrcodes_id, qrcodes.code AS qrcodes_code, qrcodes.link AS qrcodes_link, qrcodes.user_id AS qrcodes_user_id 
+FROM qrcodes 
+WHERE qrcodes.editor_id IN ($1::INTEGER)
+2026-02-24 22:06:16,421 - sqlalchemy.engine.Engine - INFO - [generated in 0.00009s] (1,)
+2026-02-24 22:06:16,422 - sqlalchemy.engine.Engine - INFO - SELECT qrcodes.user_id AS qrcodes_user_id, qrcodes.id AS qrcodes_id, qrcodes.code AS qrcodes_code, qrcodes.link AS qrcodes_link, qrcodes.editor_id AS qrcodes_editor_id 
+FROM qrcodes 
+WHERE qrcodes.user_id IN ($1::INTEGER)
+2026-02-24 22:06:16,423 - sqlalchemy.engine.Engine - INFO - [generated in 0.00114s] (1,)
+2026-02-24 22:06:16,426 - sqlalchemy.engine.Engine - INFO - SELECT reviews.user_id AS reviews_user_id, reviews.id AS reviews_id, reviews.stars AS reviews_stars, reviews.content AS reviews_content, reviews.is_flagged AS reviews_is_flagged 
+FROM reviews 
+WHERE reviews.user_id IN ($1::INTEGER)
+2026-02-24 22:06:16,426 - sqlalchemy.engine.Engine - INFO - [generated in 0.00023s] (1,)
+2026-02-24 22:06:16,427 - sqlalchemy.engine.Engine - INFO - SELECT templates.owner_user_id AS templates_owner_user_id, templates.id AS templates_id, templates.created_at AS templates_created_at, templates.name AS templates_name, templates.file_url AS templates_file_url, templates.thumb_url AS templates_thumb_url, templates.description AS templates_description 
+FROM templates 
+WHERE templates.owner_user_id IN ($1::INTEGER)
+2026-02-24 22:06:16,427 - sqlalchemy.engine.Engine - INFO - [generated in 0.00009s] (1,)
+2026-02-24 22:06:16,428 - sqlalchemy.engine.Engine - INFO - SELECT orders.user_id AS orders_user_id, orders.id AS orders_id, orders.created_at AS orders_created_at, orders.status AS orders_status, orders.total_amount AS orders_total_amount, orders.contact_info AS orders_contact_info, orders.country AS orders_country, orders.city AS orders_city, orders.first_name AS orders_first_name, orders.last_name AS orders_last_name, orders.delivery_address AS orders_delivery_address, orders.zip_code AS orders_zip_code 
+FROM orders 
+WHERE orders.user_id IN ($1::INTEGER)
+2026-02-24 22:06:16,428 - sqlalchemy.engine.Engine - INFO - [generated in 0.00009s] (1,)
+2026-02-24 22:06:16,430 - sqlalchemy.engine.Engine - INFO - SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.hashed_password AS users_hashed_password, users.role_id AS users_role_id, users.img_url AS users_img_url, users.is_active AS users_is_active, users.is_superuser AS users_is_superuser, users.is_verified AS users_is_verified, users.is_temporary_data AS users_is_temporary_data 
+FROM users 
+WHERE users.id IN ($1::INTEGER)
+2026-02-24 22:06:16,430 - sqlalchemy.engine.Engine - INFO - [generated in 0.00008s] (1,)
+2026-02-24 22:06:16,432 - sqlalchemy.engine.Engine - INFO - SELECT products.qr_id AS products_qr_id, products.id AS products_id, products.type AS products_type, products.size AS products_size, products.color AS products_color, products.description AS products_description, products.img_url AS products_img_url, products.price AS products_price 
+FROM products 
+WHERE products.qr_id IN ($1::INTEGER)
+2026-02-24 22:06:16,432 - sqlalchemy.engine.Engine - INFO - [generated in 0.00029s] (1,)
+2026-02-24 22:06:16,434 - sqlalchemy.engine.Engine - INFO - SELECT products.qr_id AS products_qr_id, products.id AS products_id, products.type AS products_type, products.size AS products_size, products.color AS products_color, products.description AS products_description, products.img_url AS products_img_url, products.price AS products_price 
+FROM products 
+WHERE products.qr_id IN ($1::INTEGER)
+2026-02-24 22:06:16,434 - sqlalchemy.engine.Engine - INFO - [generated in 0.00012s] (1,)
+2026-02-24 22:06:16,436 - sqlalchemy.engine.Engine - INFO - SELECT reviews.user_id AS reviews_user_id, reviews.id AS reviews_id, reviews.stars AS reviews_stars, reviews.content AS reviews_content, reviews.is_flagged AS reviews_is_flagged 
+FROM reviews 
+WHERE reviews.user_id IN ($1::INTEGER)
+2026-02-24 22:06:16,436 - sqlalchemy.engine.Engine - INFO - [generated in 0.00008s] (1,)
+2026-02-24 22:06:16,437 - sqlalchemy.engine.Engine - INFO - SELECT templates.owner_user_id AS templates_owner_user_id, templates.id AS templates_id, templates.created_at AS templates_created_at, templates.name AS templates_name, templates.file_url AS templates_file_url, templates.thumb_url AS templates_thumb_url, templates.description AS templates_description 
+FROM templates 
+WHERE templates.owner_user_id IN ($1::INTEGER)
+2026-02-24 22:06:16,437 - sqlalchemy.engine.Engine - INFO - [generated in 0.00007s] (1,)
+2026-02-24 22:06:16,438 - sqlalchemy.engine.Engine - INFO - SELECT orders.user_id AS orders_user_id, orders.id AS orders_id, orders.created_at AS orders_created_at, orders.status AS orders_status, orders.total_amount AS orders_total_amount, orders.contact_info AS orders_contact_info, orders.country AS orders_country, orders.city AS orders_city, orders.first_name AS orders_first_name, orders.last_name AS orders_last_name, orders.delivery_address AS orders_delivery_address, orders.zip_code AS orders_zip_code 
+FROM orders 
+WHERE orders.user_id IN ($1::INTEGER)
+2026-02-24 22:06:16,438 - sqlalchemy.engine.Engine - INFO - [generated in 0.00009s] (1,)
+2026-02-24 22:06:16,439 - sqlalchemy.engine.Engine - INFO - SELECT qrcodes.id, qrcodes.code, qrcodes.link, qrcodes.user_id, qrcodes.editor_id 
+FROM qrcodes 
+WHERE qrcodes.user_id = $1::INTEGER
+2026-02-24 22:06:16,439 - sqlalchemy.engine.Engine - INFO - [generated in 0.00009s] (1,)
+2026-02-24 22:06:16,440 - sqlalchemy.engine.Engine - INFO - SELECT editors.id AS editors_id, editors.created_at AS editors_created_at, editors.public_id AS editors_public_id, editors.current_template_id AS editors_current_template_id, editors.user_id AS editors_user_id 
+FROM editors 
+WHERE editors.id IN ($1::INTEGER)
+2026-02-24 22:06:16,440 - sqlalchemy.engine.Engine - INFO - [generated in 0.00007s] (1,)
+2026-02-24 22:06:16,441 - sqlalchemy.engine.Engine - INFO - SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.hashed_password AS users_hashed_password, users.role_id AS users_role_id, users.img_url AS users_img_url, users.is_active AS users_is_active, users.is_superuser AS users_is_superuser, users.is_verified AS users_is_verified, users.is_temporary_data AS users_is_temporary_data 
+FROM users 
+WHERE users.id IN ($1::INTEGER)
+2026-02-24 22:06:16,441 - sqlalchemy.engine.Engine - INFO - [generated in 0.00007s] (1,)
+2026-02-24 22:06:16,442 - sqlalchemy.engine.Engine - INFO - SELECT products.qr_id AS products_qr_id, products.id AS products_id, products.type AS products_type, products.size AS products_size, products.color AS products_color, products.description AS products_description, products.img_url AS products_img_url, products.price AS products_price 
+FROM products 
+WHERE products.qr_id IN ($1::INTEGER)
+2026-02-24 22:06:16,442 - sqlalchemy.engine.Engine - INFO - [generated in 0.00010s] (1,)
+2026-02-24 22:06:16,443 - sqlalchemy.engine.Engine - INFO - SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.hashed_password AS users_hashed_password, users.role_id AS users_role_id, users.img_url AS users_img_url, users.is_active AS users_is_active, users.is_superuser AS users_is_superuser, users.is_verified AS users_is_verified, users.is_temporary_data AS users_is_temporary_data 
+FROM users 
+WHERE users.id IN ($1::INTEGER)
+2026-02-24 22:06:16,443 - sqlalchemy.engine.Engine - INFO - [generated in 0.00010s] (1,)
+2026-02-24 22:06:16,444 - sqlalchemy.engine.Engine - INFO - SELECT reviews.user_id AS reviews_user_id, reviews.id AS reviews_id, reviews.stars AS reviews_stars, reviews.content AS reviews_content, reviews.is_flagged AS reviews_is_flagged 
+FROM reviews 
+WHERE reviews.user_id IN ($1::INTEGER)
+2026-02-24 22:06:16,444 - sqlalchemy.engine.Engine - INFO - [generated in 0.00010s] (1,)
+2026-02-24 22:06:16,445 - sqlalchemy.engine.Engine - INFO - SELECT templates.owner_user_id AS templates_owner_user_id, templates.id AS templates_id, templates.created_at AS templates_created_at, templates.name AS templates_name, templates.file_url AS templates_file_url, templates.thumb_url AS templates_thumb_url, templates.description AS templates_description 
+FROM templates 
+WHERE templates.owner_user_id IN ($1::INTEGER)
+2026-02-24 22:06:16,445 - sqlalchemy.engine.Engine - INFO - [generated in 0.00009s] (1,)
+2026-02-24 22:06:16,446 - sqlalchemy.engine.Engine - INFO - SELECT orders.user_id AS orders_user_id, orders.id AS orders_id, orders.created_at AS orders_created_at, orders.status AS orders_status, orders.total_amount AS orders_total_amount, orders.contact_info AS orders_contact_info, orders.country AS orders_country, orders.city AS orders_city, orders.first_name AS orders_first_name, orders.last_name AS orders_last_name, orders.delivery_address AS orders_delivery_address, orders.zip_code AS orders_zip_code 
+FROM orders 
+WHERE orders.user_id IN ($1::INTEGER)
+2026-02-24 22:06:16,446 - sqlalchemy.engine.Engine - INFO - [generated in 0.00009s] (1,)
+2026-02-24 22:06:16,448 - sqlalchemy.engine.Engine - INFO - SELECT editors.user_id AS editors_user_id, editors.id AS editors_id, editors.created_at AS editors_created_at, editors.public_id AS editors_public_id, editors.current_template_id AS editors_current_template_id 
+FROM editors 
+WHERE editors.user_id IN ($1::INTEGER)
+2026-02-24 22:06:16,448 - sqlalchemy.engine.Engine - INFO - [generated in 0.00009s] (1,)
+2026-02-24 22:06:16,449 - sqlalchemy.engine.Engine - INFO - SELECT reviews.user_id AS reviews_user_id, reviews.id AS reviews_id, reviews.stars AS reviews_stars, reviews.content AS reviews_content, reviews.is_flagged AS reviews_is_flagged 
+FROM reviews 
+WHERE reviews.user_id IN ($1::INTEGER)
+2026-02-24 22:06:16,449 - sqlalchemy.engine.Engine - INFO - [generated in 0.00009s] (1,)
+2026-02-24 22:06:16,451 - sqlalchemy.engine.Engine - INFO - SELECT templates.owner_user_id AS templates_owner_user_id, templates.id AS templates_id, templates.created_at AS templates_created_at, templates.name AS templates_name, templates.file_url AS templates_file_url, templates.thumb_url AS templates_thumb_url, templates.description AS templates_description 
+FROM templates 
+WHERE templates.owner_user_id IN ($1::INTEGER)
+2026-02-24 22:06:16,451 - sqlalchemy.engine.Engine - INFO - [generated in 0.00008s] (1,)
+2026-02-24 22:06:16,452 - sqlalchemy.engine.Engine - INFO - SELECT orders.user_id AS orders_user_id, orders.id AS orders_id, orders.created_at AS orders_created_at, orders.status AS orders_status, orders.total_amount AS orders_total_amount, orders.contact_info AS orders_contact_info, orders.country AS orders_country, orders.city AS orders_city, orders.first_name AS orders_first_name, orders.last_name AS orders_last_name, orders.delivery_address AS orders_delivery_address, orders.zip_code AS orders_zip_code 
+FROM orders 
+WHERE orders.user_id IN ($1::INTEGER)
+2026-02-24 22:06:16,453 - sqlalchemy.engine.Engine - INFO - [generated in 0.00009s] (1,)
+2026-02-24 22:06:16,453 - sqlalchemy.engine.Engine - INFO - COMMIT
+2026-02-24 22:06:16,455 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-02-24 22:06:16,455 - sqlalchemy.engine.Engine - INFO - SELECT editors.id, editors.created_at, editors.public_id, editors.current_template_id, editors.user_id 
+FROM editors 
+WHERE editors.id = $1::INTEGER
+2026-02-24 22:06:16,455 - sqlalchemy.engine.Engine - INFO - [generated in 0.00009s] (1,)
+2026-02-24 22:06:16,457 - sqlalchemy.engine.Engine - INFO - SELECT qrcodes.id AS qrcodes_id, qrcodes.code AS qrcodes_code, qrcodes.link AS qrcodes_link, qrcodes.user_id AS qrcodes_user_id, qrcodes.editor_id AS qrcodes_editor_id 
+FROM qrcodes 
+WHERE $1::INTEGER = qrcodes.editor_id
+2026-02-24 22:06:16,457 - sqlalchemy.engine.Engine - INFO - [generated in 0.00009s] (1,)
+2026-02-24 22:06:16,458 - sqlalchemy.engine.Engine - INFO - SELECT qrcodes.id, qrcodes.code, qrcodes.link, qrcodes.user_id, qrcodes.editor_id 
+FROM qrcodes 
+WHERE qrcodes.id = $1::INTEGER
+2026-02-24 22:06:16,459 - sqlalchemy.engine.Engine - INFO - [generated in 0.00008s] (1,)
+2026-02-24 22:06:16,460 - sqlalchemy.engine.Engine - INFO - SELECT products.id AS products_id, products.type AS products_type, products.size AS products_size, products.color AS products_color, products.description AS products_description, products.img_url AS products_img_url, products.price AS products_price, products.qr_id AS products_qr_id 
+FROM products 
+WHERE $1::INTEGER = products.qr_id
+2026-02-24 22:06:16,460 - sqlalchemy.engine.Engine - INFO - [generated in 0.00009s] (1,)
+2026-02-24 22:06:16,461 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2026-02-24 22:06:16,462 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2026-02-24 22:06:16,463 - sqlalchemy.engine.Engine - INFO - SELECT products.id, products.type, products.size, products.color, products.description, products.img_url, products.price, products.qr_id 
+FROM products 
+WHERE products.type = $1::VARCHAR AND products.size = $2::VARCHAR AND products.color = $3::VARCHAR
+2026-02-24 22:06:16,463 - sqlalchemy.engine.Engine - INFO - [generated in 0.00008s] ('Футболка', 'M', 'Белый')
+2026-02-24 22:06:16,464 - sqlalchemy.engine.Engine - INFO - ROLLBACK
