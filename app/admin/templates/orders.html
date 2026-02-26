@@ -249,6 +249,44 @@ function renderOrderDetail(o){
       </div>
     </div>
 
+    <!-- ДОСТАВКА -->
+    <div class="panel" style="margin-bottom:8px">
+      <h4 style="margin-top:0; margin-bottom:8px">Данные доставки</h4>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px">
+        <div>
+          <label>Имя</label>
+          <input type="text" id="dFirstName" value="${fmt(o.first_name)}" placeholder="Иван">
+        </div>
+        <div>
+          <label>Фамилия</label>
+          <input type="text" id="dLastName" value="${fmt(o.last_name)}" placeholder="Иванов">
+        </div>
+        <div>
+          <label>Контакты</label>
+          <input type="text" id="dContact" value="${fmt(o.contact_info)}" placeholder="+7 999 123 45 67">
+        </div>
+        <div>
+          <label>Страна</label>
+          <input type="text" id="dCountry" value="${fmt(o.country)}" placeholder="Россия">
+        </div>
+        <div>
+          <label>Город</label>
+          <input type="text" id="dCity" value="${fmt(o.city)}" placeholder="Москва">
+        </div>
+        <div>
+          <label>Индекс</label>
+          <input type="text" id="dZip" value="${fmt(o.zip_code)}" placeholder="123456">
+        </div>
+        <div style="grid-column: 1 / -1;">
+          <label>Точный адрес</label>
+          <input type="text" id="dAddress" value="${fmt(o.delivery_address)}" placeholder="ул. Ленина, д. 1, кв. 2">
+        </div>
+      </div>
+      <div>
+        <button class="btn primary" data-act="delivery-save" data-id="${o.id}">Сохранить данные доставки</button>
+      </div>
+    </div>
+
     <div class="panel">
       <div class="table-responsive">
         <table class="tbl">
@@ -388,6 +426,27 @@ $('#detail').onclick=async (e)=>{
     const o=await r.json();
     renderOrderDetail(o);
     loadOrders();
+  }
+  else if(act==='delivery-save'){
+    const id=btn.dataset.id;
+    const payload = {
+      first_name: $('#dFirstName').value.trim() || null,
+      last_name: $('#dLastName').value.trim() || null,
+      contact_info: $('#dContact').value.trim() || null,
+      country: $('#dCountry').value.trim() || null,
+      city: $('#dCity').value.trim() || null,
+      zip_code: $('#dZip').value.trim() || null,
+      delivery_address: $('#dAddress').value.trim() || null,
+    };
+    const r=await authFetch(`/orders/${id}/delivery`,{
+      method:"PATCH",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify(payload)
+    });
+    if(!r.ok){alert(`Не удалось сохранить данные доставки: ${await r.text()}`);return;}
+    const o=await r.json();
+    renderOrderDetail(o);
+    alert('Данные доставки сохранены!');
   }
   else if(act==='rm-item'){
     const itemId=btn.dataset.itemId;

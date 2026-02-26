@@ -110,7 +110,11 @@ async def list_all_orders(
     return rows
 
 async def create_order(
-    db: AsyncSession, requester: User, items: List[Tuple[int, int]]
+    db: AsyncSession, requester: User, items: List[Tuple[int, int]],
+    contact_info: Optional[str] = None, country: Optional[str] = None,
+    city: Optional[str] = None, first_name: Optional[str] = None,
+    last_name: Optional[str] = None, delivery_address: Optional[str] = None,
+    zip_code: Optional[str] = None
 ) -> Order:
     """
     items: список (product_id, quantity). Создаёт заказ пользователя и позиции.
@@ -138,7 +142,12 @@ async def create_order(
     # map id -> Product
     product_map = {p.id: p for p in products}
 
-    order = Order(user_id=requester.id, status="pending", total_amount=0)
+    order = Order(
+        user_id=requester.id, status="pending", total_amount=0,
+        contact_info=contact_info, country=country, city=city,
+        first_name=first_name, last_name=last_name, 
+        delivery_address=delivery_address, zip_code=zip_code
+    )
     db.add(order)
     await db.flush()  # получаем order.id
 
@@ -273,6 +282,26 @@ async def admin_update_order_status(
         raise HTTPException(status_code=404, detail="Order not found")
 
     order.status = status
+    await db.commit()
+
+    order = (await db.execute(await _order_with_items_query(order_id))).scalars().first()
+    return order
+
+async def admin_update_order_delivery(
+    db: AsyncSession, requester: User, order_id: int, delivery_data: dict
+) -> Order:
+    """Суперюзер: изменить данные доставки заказа."""
+    if not requester.is_superuser:
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    order = (await db.execute(await _order_with_items_query(order_id))).scalars().first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    for key, value in delivery_data.items():
+        if hasattr(order, key):
+            setattr(order, key, value)
+            
     await db.commit()
 
     order = (await db.execute(await _order_with_items_query(order_id))).scalars().first()

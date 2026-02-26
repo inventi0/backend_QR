@@ -13,13 +13,22 @@ class OrderCreateIn(BaseModel):
     items: List[OrderItemCreateIn] = Field(..., min_items=1)
     
     # Delivery info
-    contact_info: str
-    country: str
-    city: str
-    first_name: str
-    last_name: str
-    delivery_address: str
-    zip_code: str
+    contact_info: Optional[str] = None
+    country: Optional[str] = None
+    city: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    delivery_address: Optional[str] = None
+    zip_code: Optional[str] = None
+
+class OrderDeliveryUpdateIn(BaseModel):
+    contact_info: Optional[str] = None
+    country: Optional[str] = None
+    city: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    delivery_address: Optional[str] = None
+    zip_code: Optional[str] = None
 
 class OrderItemOut(BaseModel):
     id: int
