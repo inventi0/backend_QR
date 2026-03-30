@@ -25,6 +25,7 @@ from app.helpers.order_helpers import (
     admin_update_order_status,
     admin_update_order_item_quantity,
     admin_update_order_delivery,
+    sync_order_delivery_status,
 )
 
 from app.error.handler import handle_error
@@ -46,7 +47,7 @@ async def orders_create(
             contact_info=payload.contact_info, country=payload.country,
             city=payload.city, first_name=payload.first_name,
             last_name=payload.last_name, delivery_address=payload.delivery_address,
-            zip_code=payload.zip_code
+            zip_code=payload.zip_code, use_yandex_delivery=payload.use_yandex_delivery
         )
         return order
     except Exception as e:
@@ -197,3 +198,17 @@ async def orders_update_delivery(
         return order
     except Exception as e:
         raise handle_error(e, app_logger, "orders_update_delivery")
+
+
+@orders_router.get("/{order_id}/delivery-status", response_model=OrderOut)
+async def orders_sync_delivery_status(
+    order_id: int,
+    user: User = Depends(current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Синхронизировать и получить статус доставки Яндекса."""
+    try:
+        order = await sync_order_delivery_status(db, user, order_id)
+        return order
+    except Exception as e:
+        raise handle_error(e, app_logger, "orders_sync_delivery_status")

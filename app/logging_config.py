@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 from logging.handlers import RotatingFileHandler
 
 os.makedirs("logs", exist_ok=True)
@@ -30,10 +31,16 @@ db_logger.addHandler(db_handler)
 db_logger.propagate = False
 
 app_logger = logging.getLogger("app")
-app_logger.setLevel(logging.INFO)
+app_logger.setLevel(logging.DEBUG)
+# Файловый хандлер
 app_handler = RotatingFileHandler("logs/app.log", maxBytes=10*1024*1024, backupCount=5)
 app_handler.setFormatter(formatter)
 app_logger.addHandler(app_handler)
+# Консольный хандлер (пойдёт в docker compose logs)
+console_handler = logging.StreamHandler(sys.stdout)
+console_handler.setLevel(logging.DEBUG)
+console_handler.setFormatter(formatter)
+app_logger.addHandler(console_handler)
 app_logger.propagate = False
 
 print("✅ Логирование настроено!")

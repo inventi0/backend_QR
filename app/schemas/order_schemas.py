@@ -20,6 +20,7 @@ class OrderCreateIn(BaseModel):
     last_name: Optional[str] = None
     delivery_address: Optional[str] = None
     zip_code: Optional[str] = None
+    use_yandex_delivery: bool = False
 
 class OrderDeliveryUpdateIn(BaseModel):
     contact_info: Optional[str] = None
@@ -55,6 +56,13 @@ class OrderOut(BaseModel):
     last_name: Optional[str]
     delivery_address: Optional[str]
     zip_code: Optional[str]
+    
+    # Yandex Delivery info
+    yandex_request_id: Optional[str] = None
+    yandex_status: Optional[str] = None
+    yandex_offer_id: Optional[str] = None
+    yandex_error: Optional[str] = None
+    delivery_cost: conint(ge=0) = 0
     
     items: List[OrderItemOut]
 

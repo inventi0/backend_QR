@@ -1,3 +1,4 @@
+import os
 from typing import List, Sequence, Tuple, Optional
 from fastapi import HTTPException
 from sqlalchemy import select, func, asc, desc
@@ -5,6 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload, joinedload
 
 from app.models.models import Order, OrderItem, Product, User
+from app.delivery.yandex import YandexDeliveryClient
+from app.logging_config import app_logger
 
 async def _order_with_items_query(order_id: int):
     return (
@@ -114,12 +117,11 @@ async def create_order(
     contact_info: Optional[str] = None, country: Optional[str] = None,
     city: Optional[str] = None, first_name: Optional[str] = None,
     last_name: Optional[str] = None, delivery_address: Optional[str] = None,
-    zip_code: Optional[str] = None
+    zip_code: Optional[str] = None,
+    use_yandex_delivery: bool = False
 ) -> Order:
     """
     items: список (product_id, quantity). Создаёт заказ пользователя и позиции.
-    Если один и тот же product_id встречается несколько раз — суммируем quantity.
-    Для каждой позиции фиксируем amount = quantity * product.price.
     """
     if not items:
         raise HTTPException(status_code=400, detail="Items required")
@@ -139,7 +141,6 @@ async def create_order(
         missing = sorted(set(product_ids) - existing_ids)
         raise HTTPException(status_code=404, detail=f"Products not found: {missing}")
 
-    # map id -> Product
     product_map = {p.id: p for p in products}
 
     order = Order(
@@ -149,16 +150,128 @@ async def create_order(
         delivery_address=delivery_address, zip_code=zip_code
     )
     db.add(order)
-    await db.flush()  # получаем order.id
+    await db.flush()
 
     total = 0
+    yandex_items = []
     for pid, qty in merged.items():
         prod = product_map[pid]
         item_amount = qty * (prod.price or 0)
         db.add(OrderItem(order_id=order.id, product_id=pid, quantity=qty, amount=item_amount))
         total += item_amount
+        
+        # Подготовка данных для Яндекса (футболка по умолчанию)
+        yandex_items.append({
+            "weight": 0.5 * qty,
+            "dimensions": {"length": 30, "width": 20, "height": 2 * qty},
+            "name": f"Product {prod.id} ({prod.type})"
+        })
 
     order.total_amount = total
+
+    # Логика Яндекс Доставки (всегда включена по умолчанию)
+    if True: 
+        try:
+            from app.delivery.yandex import YandexDeliveryClient, YandexDeliveryError
+            client = YandexDeliveryClient()
+            # Для теста используем фиксированный source_station_id
+            source_station_id = os.getenv("YANDEX_DELIVERY_SOURCE_STATION_ID", "fbed3aa1-2cc6-4370-ab4d-59c5cc9bb924")
+            
+            yandex_items = []
+            total_weight_g = 0
+            max_dx, max_dy, total_dz = 0, 0, 0
+            
+            for pid, qty in merged.items():
+                prod = product_map[pid]
+                # Предположим усредненные параметры, если их нет в БД
+                # Вес в граммах (0.5 кг -> 500 г)
+                weight_g = 500 * qty
+                total_weight_g += weight_g
+                
+                # Размеры в см (dx=длина, dy=высота, dz=ширина)
+                dx, dy, dz = 30, 20, 2 * qty
+                max_dx = max(max_dx, dx)
+                max_dy = max(max_dy, dy)
+                total_dz += dz
+                
+                yandex_items.append({
+                    "count": qty,
+                    "name": f"{prod.type} {prod.color} {prod.size}",
+                    "article": f"sku-{prod.id}",
+                    "physical_dims": {
+                        "dx": dx,
+                        "dy": dy,
+                        "dz": dz,
+                        "weight_gross": int(weight_g)
+                    },
+                    "billing_details": {
+                        "unit_price": int((prod.price or 0) * 100), # в копейках
+                        "assessed_unit_price": int((prod.price or 0) * 100),
+                        "nds": 0
+                    }
+                })
+            
+            yandex_places = [{
+                "physical_dims": {
+                    "dx": int(max_dx),
+                    "dy": int(max_dy),
+                    "dz": int(total_dz),
+                    "weight_gross": int(total_weight_g)
+                }
+            }]
+            
+            # Нормализация телефона: убираем всё кроме цифр и +
+            raw_phone = contact_info if (contact_info and contact_info.startswith("+")) else "+79991234567"
+            clean_phone = "+" + "".join(c for c in raw_phone if c.isdigit())
+
+            destination = {
+                "address": delivery_address,
+                "city": city or "Москва",
+                "contact": {
+                    "first_name": first_name or requester.username,
+                    "last_name": last_name or "",
+                    "phone": clean_phone
+                }
+            }
+            
+            offer_resp = await client.create_offer(
+                source_station_id=source_station_id,
+                destination=destination,
+                items=yandex_items,
+                places=yandex_places,
+                last_mile_policy="time_interval" # Доставка до двери
+            )
+            
+            offers = offer_resp.get("offers", [])
+            if not offers:
+                app_logger.warning(f"No Yandex delivery offers for order {order.id}")
+                order.yandex_error = "Яндекс не предложил вариантов доставки для указанного адреса."
+                order.status = "cancelled"  # Нет офферов — сразу в отказ
+            else:
+                # Берём первый подходящий оффер
+                selected_offer = offers[0]
+                offer_id = selected_offer["offer_id"]
+                price_kop = int(selected_offer["price"]["total"])
+                price_rub = price_kop // 100
+                
+                confirm_resp = await client.confirm_offer(offer_id)
+                
+                order.yandex_offer_id = offer_id
+                order.yandex_request_id = confirm_resp.get("request_id")
+                order.yandex_status = "created"
+                order.delivery_cost = price_rub
+                order.total_amount += price_rub
+                order.yandex_error = None
+                
+        except YandexDeliveryError as e:
+            app_logger.error(f"Yandex Delivery API error for order {order.id}: {e.code} - {str(e)}")
+            order.yandex_error = f"Ошибка Яндекса ({e.code}): {str(e)}"
+            order.status = "cancelled"  # Ошибка Яндекса — сразу в отказ
+        except Exception as e:
+            app_logger.error(f"Unexpected error creating Yandex delivery for order {order.id}: {str(e)}")
+            order.yandex_error = f"Системная ошибка: {str(e)}"
+            order.status = "cancelled"  # Неизвестная ошибка — тоже в отказ
+
     await db.commit()
 
     order = (await db.execute(await _order_with_items_query(order.id))).scalars().first()
@@ -305,4 +418,31 @@ async def admin_update_order_delivery(
     await db.commit()
 
     order = (await db.execute(await _order_with_items_query(order_id))).scalars().first()
+    return order
+
+
+async def sync_order_delivery_status(
+    db: AsyncSession, requester: User, order_id: int
+) -> Order:
+    """Синхронизировать статус доставки с Яндексом."""
+    order = await get_order_secure(db, requester, order_id)
+    
+    if not order.yandex_request_id:
+        return order
+
+    try:
+        from app.delivery.yandex import YandexDeliveryClient
+        client = YandexDeliveryClient()
+        info = await client.get_request_info(order.yandex_request_id)
+        
+        # Обновляем статус
+        new_status = info.get("status")
+        if new_status:
+            order.yandex_status = new_status
+            
+        await db.commit()
+    except Exception as e:
+        from app.logging_config import app_logger
+        app_logger.error(f"Failed to sync Yandex status for order {order_id}: {str(e)}")
+        
     return order

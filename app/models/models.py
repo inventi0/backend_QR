@@ -98,6 +98,13 @@ class Order(Base):
     delivery_address = Column(String, nullable=True)
     zip_code = Column(String, nullable=True)
 
+    # Yandex Delivery info
+    yandex_request_id = Column(String, nullable=True)
+    yandex_status = Column(String, nullable=True)
+    yandex_offer_id = Column(String, nullable=True)
+    yandex_error = Column(String, nullable=True)
+    delivery_cost = Column(Integer, default=0)
+
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
     user = relationship("User", back_populates="orders", lazy="selectin")
